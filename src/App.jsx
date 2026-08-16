@@ -79,14 +79,14 @@ export default function App() {
         <div className="logo-row">
           <div className="logo">
             <span className="dot" />
-            MARCADOR
+            PARTIDOS
           </div>
           <button
             className={"fav-filter" + (onlyFavorites ? " active" : "")}
             onClick={() => setOnlyFavorites((v) => !v)}
             title="Mostrar solo mis favoritos"
           >
-            ★ Favoritos
+            ★ FAVORITOS
           </button>
         </div>
 
@@ -131,7 +131,7 @@ export default function App() {
 
               {status === "error" && (
                 <p className="error-banner">
-                  No pude conectar con el backend. ¿Está corriendo la API?
+                 Solucionando errores...
                 </p>
               )}
               {status === "loading" && <p className="empty">Cargando partidos…</p>}
@@ -149,8 +149,7 @@ export default function App() {
             </div>
           </div>
 
-          <footer>Deslizá a los costados (o usá las flechas) para cambiar de día.</footer>
-        </>
+           </>
       )}
     </div>
   );
