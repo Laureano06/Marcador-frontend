@@ -43,7 +43,7 @@ body {
 header {
   padding: 20px 18px 0;
   border-bottom: 1px solid var(--line);
-  background: var(--bg);
+  background: #3a3535;
   position: sticky;
   top: 0;
   z-index: 10;
