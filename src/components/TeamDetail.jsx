@@ -88,6 +88,96 @@ export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorit
             </div>
           </div>
 
+          {profile.stats && (
+            <div className="team-section">
+              <div className="team-section-title">Estadísticas</div>
+              <div className="stats-grid">
+                {profile.stats.rank != null && (
+                  <div className="stat-box">
+                    <div className="stat-value">{profile.stats.rank}°</div>
+                    <div className="stat-label">Posición</div>
+                  </div>
+                )}
+                {profile.stats.points != null && (
+                  <div className="stat-box">
+                    <div className="stat-value">{profile.stats.points}</div>
+                    <div className="stat-label">Puntos</div>
+                  </div>
+                )}
+                {profile.stats.played != null && (
+                  <div className="stat-box">
+                    <div className="stat-value">{profile.stats.played}</div>
+                    <div className="stat-label">Jugados</div>
+                  </div>
+                )}
+                {profile.stats.wins != null && (
+                  <div className="stat-box">
+                    <div className="stat-value">{profile.stats.wins}</div>
+                    <div className="stat-label">Ganados</div>
+                  </div>
+                )}
+                {profile.stats.draws != null && (
+                  <div className="stat-box">
+                    <div className="stat-value">{profile.stats.draws}</div>
+                    <div className="stat-label">Empatados</div>
+                  </div>
+                )}
+                {profile.stats.losses != null && (
+                  <div className="stat-box">
+                    <div className="stat-value">{profile.stats.losses}</div>
+                    <div className="stat-label">Perdidos</div>
+                  </div>
+                )}
+                {profile.stats.goalsFor != null && (
+                  <div className="stat-box">
+                    <div className="stat-value">{profile.stats.goalsFor}</div>
+                    <div className="stat-label">Goles a favor</div>
+                  </div>
+                )}
+                {profile.stats.goalsAgainst != null && (
+                  <div className="stat-box">
+                    <div className="stat-value">{profile.stats.goalsAgainst}</div>
+                    <div className="stat-label">Goles en contra</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {profile.liveLineup && (
+            <div className="team-section">
+              <div className="team-section-title">
+                <span className="live-dot" /> Alineación — en vivo
+              </div>
+              <div className="lineup-columns">
+                {[profile.liveLineup.home, profile.liveLineup.away].map(
+                  (side, i) =>
+                    side && (
+                      <div className="lineup-side" key={i}>
+                        <div className="lineup-team-name">
+                          {side.teamName}
+                          {side.formation ? ` (${side.formation})` : ""}
+                        </div>
+                        {side.starters.map((p) => (
+                          <div key={p.id} className="lineup-player">
+                            <span className="lineup-player-number">
+                              {p.number ?? "-"}
+                            </span>
+                            <span className="lineup-player-name">{p.name}</span>
+                            {p.position && (
+                              <span className="lineup-player-position">
+                                {p.position}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )
+                )}
+              </div>
+            </div>
+          )}
+
           {profile.recentForm.length > 0 && (
             <div className="team-section">
               <div className="team-section-title">Últimos partidos</div>
