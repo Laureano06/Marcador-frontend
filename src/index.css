@@ -8,7 +8,7 @@
   --text-dim: rgba(242, 242, 240, 0.55);
   --text-dimmer: rgba(242, 242, 240, 0.3);
   --accent: #ac9897;
-  --accent-dim: rgba(255, 90, 31, 0.14);
+  --accent-dim: rgba(172, 152, 151, 0.14);
   --blue: #4f8cf0;
   --live: #ac9897;
   --font-display: "Oswald", sans-serif;
@@ -72,7 +72,7 @@ header {
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 10px rgba(255, 90, 31, 0.7);
+  box-shadow: 0 0 10px rgba(172, 152, 151, 0.7);
 }
 
 .fav-filter {
@@ -96,8 +96,8 @@ header {
 
 .fav-filter.active {
   color: var(--bg);
-  background: gold;
-  border-color: gold;
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 /* --- Buscador --- */
@@ -212,12 +212,12 @@ header {
 }
 
 .fav-btn:hover {
-  color: gold;
+  color: var(--accent);
   transform: scale(1.15);
 }
 
 .fav-btn.active {
-  color: gold;
+  color: var(--accent);
 }
 
 .fav-btn.lg {
@@ -493,8 +493,8 @@ header {
 
 .status-badge.live {
   color: var(--live);
-  border: 1px solid rgba(255, 59, 48, 0.4);
-  background: rgba(255, 59, 48, 0.1);
+  border: 1px solid rgba(172, 152, 151, 0.4);
+  background: rgba(172, 152, 151, 0.1);
 }
 
 .status-badge.live .blip {
@@ -688,7 +688,7 @@ footer {
   color: var(--text);
 }
 .form-chip.result-P {
-  background: var(--live);
+  background: #e05a52;
 }
 
 .form-list {
@@ -729,7 +729,7 @@ footer {
   color: var(--text);
 }
 .form-badge.result-P {
-  background: var(--live);
+  background: #e05a52;
 }
 
 .form-opponent {
