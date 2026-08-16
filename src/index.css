@@ -43,11 +43,12 @@ body {
 header {
   padding: 20px 18px 0;
   border-bottom: 1px solid var(--line);
-  background: #3a3535;
+  background: var(--bg);
   position: sticky;
   top: 0;
   z-index: 10;
 }
+
 
 .logo-row {
   display: flex;
