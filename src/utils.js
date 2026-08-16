@@ -62,11 +62,10 @@ export function labelForDate(dateKey) {
 // orden que esperás, revisá que el nombre esté bien escrito acá.
 export const LEAGUE_ORDER = [
   "Liga Profesional Argentina",
-  "Primera División",
   "Copa Argentina",
   "Copa Libertadores",
   "Copa Sudamericana",
-  "World Cup",
+  "Mundial",
   "UEFA Champions League",
   "Premier League",
   "La Liga",
@@ -75,6 +74,7 @@ export const LEAGUE_ORDER = [
   "Ligue 1",
   "Primeira Liga",
   "Eredivisie",
+  "Brasileirão",
 ];
 
 function leagueRank(name) {

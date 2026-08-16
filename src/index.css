@@ -1,5 +1,5 @@
 :root {
-  --bg: #373d46;
+  --bg: #0a0b0d;
   --bg-card: #16181c;
   --bg-card-hover: #1d2025;
   --bg-strip: #131518;
@@ -7,10 +7,10 @@
   --text: #f2f2f0;
   --text-dim: rgba(242, 242, 240, 0.55);
   --text-dimmer: rgba(242, 242, 240, 0.3);
-  --accent: #f2f2f0;
-  --accent-dim: rgba(242, 242, 240, 0.14);
+  --accent: #ff5a1f;
+  --accent-dim: rgba(255, 90, 31, 0.14);
   --blue: #4f8cf0;
-  --live: #f2f2f0;
+  --live: #ff3b30;
   --font-display: "Oswald", sans-serif;
   --font-mono: "Space Mono", monospace;
   --font-body: "Inter", sans-serif;
@@ -49,7 +49,6 @@ header {
   z-index: 10;
 }
 
-
 .logo-row {
   display: flex;
   align-items: center;
@@ -73,7 +72,7 @@ header {
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 10px rgba(172, 152, 151, 0.7);
+  box-shadow: 0 0 10px rgba(255, 90, 31, 0.7);
 }
 
 .fav-filter {
@@ -97,8 +96,8 @@ header {
 
 .fav-filter.active {
   color: var(--bg);
-  background: var(--accent);
-  border-color: var(--accent);
+  background: gold;
+  border-color: gold;
 }
 
 /* --- Buscador --- */
@@ -213,12 +212,12 @@ header {
 }
 
 .fav-btn:hover {
-  color: var(--accent);
+  color: gold;
   transform: scale(1.15);
 }
 
 .fav-btn.active {
-  color: var(--accent);
+  color: gold;
 }
 
 .fav-btn.lg {
@@ -494,8 +493,8 @@ header {
 
 .status-badge.live {
   color: var(--live);
-  border: 1px solid rgba(172, 152, 151, 0.4);
-  background: rgba(172, 152, 151, 0.1);
+  border: 1px solid rgba(255, 59, 48, 0.4);
+  background: rgba(255, 59, 48, 0.1);
 }
 
 .status-badge.live .blip {
@@ -689,7 +688,7 @@ footer {
   color: var(--text);
 }
 .form-chip.result-P {
-  background: #e05a52;
+  background: var(--live);
 }
 
 .form-list {
@@ -730,7 +729,7 @@ footer {
   color: var(--text);
 }
 .form-badge.result-P {
-  background: #e05a52;
+  background: var(--live);
 }
 
 .form-opponent {

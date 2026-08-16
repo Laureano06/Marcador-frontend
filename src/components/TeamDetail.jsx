@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { fetchTeamProfile } from "../api";
 import FavoriteButton from "./FavoriteButton";
 
-const POSITION_ORDER = ["Goalkeeper", "Defender", "Midfielder", "Attacker"];
+const POSITION_ORDER = ["Goalkeepers", "Defenders", "Midfielders", "Forwards"];
 const POSITION_LABEL = {
-  Goalkeeper: "Arqueros",
-  Defender: "Defensores",
-  Midfielder: "Mediocampistas",
-  Attacker: "Delanteros",
+  Goalkeepers: "Arqueros",
+  Defenders: "Defensores",
+  Midfielders: "Mediocampistas",
+  Forwards: "Delanteros",
 };
 
 function groupSquadByPosition(squad) {
@@ -70,10 +70,12 @@ export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorit
                   size="lg"
                 />
               </div>
-              <div className="team-header-meta">
-                {profile.country}
-                {profile.founded ? ` · Fundado en ${profile.founded}` : ""}
-              </div>
+              {(profile.country || profile.founded) && (
+                <div className="team-header-meta">
+                  {profile.country}
+                  {profile.founded ? ` · Fundado en ${profile.founded}` : ""}
+                </div>
+              )}
               {profile.venue?.name && (
                 <div className="team-header-meta">
                   {profile.venue.name}
