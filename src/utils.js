@@ -82,6 +82,19 @@ function leagueRank(name) {
   return i === -1 ? LEAGUE_ORDER.length : i; // desconocidas, al final
 }
 
+// Agrupa una lista de partidos por día (clave "YYYY-MM-DD" tomada de
+// match.start), preservando el orden cronológico. Se usa en la página de
+// una liga puntual, donde los partidos no vienen ya filtrados por día.
+export function groupByDate(matches) {
+  const groups = {};
+  for (const m of matches) {
+    const key = toDateKey(new Date(m.start));
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(m);
+  }
+  return groups;
+}
+
 export function groupByLeague(matches) {
   const groups = {};
   for (const m of matches) {

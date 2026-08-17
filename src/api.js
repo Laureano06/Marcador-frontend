@@ -32,3 +32,27 @@ export async function fetchTeamProfile(teamId) {
   }
   return res.json();
 }
+
+export async function fetchLeagues() {
+  const res = await fetch(`${API_BASE}/api/leagues`);
+  if (!res.ok) {
+    throw new Error(`API respondió ${res.status}`);
+  }
+  return res.json(); // [{ slug, name }, ...]
+}
+
+export async function fetchLeagueStandings(slug) {
+  const res = await fetch(`${API_BASE}/api/leagues/${slug}/standings`);
+  if (!res.ok) {
+    throw new Error(`API respondió ${res.status}`);
+  }
+  return res.json(); // { standings: [...] | null }
+}
+
+export async function fetchLeagueMatches(slug) {
+  const res = await fetch(`${API_BASE}/api/leagues/${slug}/matches`);
+  if (!res.ok) {
+    throw new Error(`API respondió ${res.status}`);
+  }
+  return res.json(); // { updatedAt, matches: [...] }
+}
