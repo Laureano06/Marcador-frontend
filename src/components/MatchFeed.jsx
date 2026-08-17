@@ -5,6 +5,7 @@ import FavoriteButton from "./FavoriteButton";
 export default function MatchFeed({
   matches,
   onSelectTeam,
+  onSelectMatch,
   isLeagueFavorite,
   onToggleLeague,
   isTeamFavorite,
@@ -52,6 +53,7 @@ export default function MatchFeed({
               key={m.id}
               match={m}
               onSelectTeam={onSelectTeam}
+              onSelectMatch={onSelectMatch}
               isTeamFavorite={isTeamFavorite}
               onToggleTeam={onToggleTeam}
             />

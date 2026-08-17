@@ -8,6 +8,7 @@ import SearchBar from "./components/SearchBar";
 import TeamDetail from "./components/TeamDetail";
 import LeagueSidebar from "./components/LeagueSidebar";
 import LeaguePage from "./components/LeaguePage";
+import MatchDetail from "./components/MatchDetail";
 
 const POLL_MS = 60000;
 const SWIPE_THRESHOLD_PX = 60;
@@ -24,6 +25,10 @@ export default function App() {
   // Panel lateral de ligas + la liga que se esté viendo (tabla + partidos).
   const [leagues, setLeagues] = useState([]);
   const [selectedLeague, setSelectedLeague] = useState(null);
+  // Partido puntual seleccionado (estadísticas + alineación). Tiene
+  // prioridad sobre todo lo demás: se puede abrir desde el feed del día,
+  // desde la página de una liga, o (más adelante) desde donde sea.
+  const [selectedMatch, setSelectedMatch] = useState(null); // { id, leagueId }
 
   const touchStartX = useRef(null);
 
@@ -75,17 +80,23 @@ export default function App() {
     const league = leagues.find((l) => l.slug === slug);
     if (!league) return;
     setSelectedTeamId(null);
+    setSelectedMatch(null);
     setSelectedLeague(league);
+  };
+
+  const openMatch = (match) => {
+    setSelectedMatch({ id: match.id, leagueId: match.leagueId });
   };
 
   const goHome = () => {
     setSelectedTeamId(null);
     setSelectedLeague(null);
+    setSelectedMatch(null);
   };
 
   // --- Gestos táctiles: deslizar para cambiar de día ---
   // (deshabilitado fuera del feed principal de partidos por día)
-  const swipeEnabled = !selectedTeamId && !selectedLeague;
+  const swipeEnabled = !selectedTeamId && !selectedLeague && !selectedMatch;
 
   const handleTouchStart = (e) => {
     if (!swipeEnabled) return;
@@ -125,7 +136,7 @@ export default function App() {
 
           <SearchBar onSelectTeam={setSelectedTeamId} />
 
-          {!selectedTeamId && !selectedLeague && (
+          {!selectedTeamId && !selectedLeague && !selectedMatch && (
             <div className="day-nav">
               <button className="day-arrow" onClick={goPrev} aria-label="Día anterior">
                 ‹
@@ -138,10 +149,17 @@ export default function App() {
           )}
         </header>
 
-        {selectedTeamId ? (
+        {selectedMatch ? (
+          <MatchDetail
+            matchId={selectedMatch.id}
+            leagueSlug={selectedMatch.leagueId}
+            onBack={() => setSelectedMatch(null)}
+          />
+        ) : selectedTeamId ? (
           <TeamDetail
             teamId={selectedTeamId}
             onBack={() => setSelectedTeamId(null)}
+            onSelectTeam={setSelectedTeamId}
             isFavorite={isTeamFavorite(selectedTeamId)}
             onToggleFavorite={() => toggleTeam(selectedTeamId)}
           />
@@ -150,6 +168,7 @@ export default function App() {
             league={selectedLeague}
             onBack={() => setSelectedLeague(null)}
             onSelectTeam={setSelectedTeamId}
+            onSelectMatch={openMatch}
             isTeamFavorite={isTeamFavorite}
             onToggleTeam={toggleTeam}
           />
@@ -180,6 +199,7 @@ export default function App() {
                   <MatchFeed
                     matches={matches}
                     onSelectTeam={setSelectedTeamId}
+                    onSelectMatch={openMatch}
                     isLeagueFavorite={isLeagueFavorite}
                     onToggleLeague={toggleLeague}
                     isTeamFavorite={isTeamFavorite}

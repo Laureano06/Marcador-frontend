@@ -8,6 +8,7 @@ export default function LeaguePage({
   league,
   onBack,
   onSelectTeam,
+  onSelectMatch,
   isTeamFavorite,
   onToggleTeam,
 }) {
@@ -83,6 +84,7 @@ export default function LeaguePage({
                   key={m.id}
                   match={m}
                   onSelectTeam={onSelectTeam}
+                  onSelectMatch={onSelectMatch}
                   isTeamFavorite={isTeamFavorite}
                   onToggleTeam={onToggleTeam}
                 />

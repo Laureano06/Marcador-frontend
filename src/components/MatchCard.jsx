@@ -44,13 +44,18 @@ function StatusBadge({ status, start }) {
 
 // El nombre + escudo de cada equipo es clickeable: lleva a la ficha del
 // equipo (plantel, últimos partidos). La estrellita permite marcarlo como
-// favorito sin salir de la lista de partidos.
+// favorito sin salir de la lista de partidos. stopPropagation en ambos
+// para que no dispare también el click del partido (que está en la
+// tarjeta completa, más abajo).
 function TeamSide({ id, name, ab, crest, side, onSelectTeam, isFavorite, onToggleFavorite }) {
   return (
     <div className={"side " + side}>
       <button
         className="side-clickable"
-        onClick={() => onSelectTeam(id)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelectTeam(id);
+        }}
         title={`Ver ${name}`}
       >
         <Crest abbr={ab} crestUrl={crest} />
@@ -64,13 +69,19 @@ function TeamSide({ id, name, ab, crest, side, onSelectTeam, isFavorite, onToggl
 export default function MatchCard({
   match,
   onSelectTeam,
+  onSelectMatch,
   isTeamFavorite,
   onToggleTeam,
 }) {
   const hasScore = match.scoreHome !== null && match.scoreAway !== null;
 
   return (
-    <div className="match">
+    <div
+      className="match"
+      onClick={() => onSelectMatch?.(match)}
+      role={onSelectMatch ? "button" : undefined}
+      title={onSelectMatch ? "Ver detalle del partido" : undefined}
+    >
       <div className="match-top">
         <TeamSide
           id={match.homeId}

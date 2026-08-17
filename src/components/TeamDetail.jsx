@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { fetchTeamProfile } from "../api";
+import { fetchTeamProfile, fetchLeagueStandings } from "../api";
 import FavoriteButton from "./FavoriteButton";
+import StandingsTable from "./StandingsTable";
 
 const POSITION_ORDER = ["Goalkeepers", "Defenders", "Midfielders", "Forwards"];
 const POSITION_LABEL = {
@@ -24,17 +25,24 @@ function groupSquadByPosition(squad) {
 
 const RESULT_LABEL = { G: "G", E: "E", P: "P" };
 
-export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorite }) {
+export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorite, onSelectTeam }) {
   const [profile, setProfile] = useState(null);
   const [status, setStatus] = useState("loading"); // loading | ok | error
+  const [standings, setStandings] = useState(null);
 
   useEffect(() => {
     setStatus("loading");
     setProfile(null);
+    setStandings(null);
     fetchTeamProfile(teamId)
       .then((data) => {
         setProfile(data);
         setStatus("ok");
+        if (data.leagueSlug) {
+          fetchLeagueStandings(data.leagueSlug)
+            .then((res) => setStandings(res.standings))
+            .catch((err) => console.error("No se pudo cargar la tabla", err));
+        }
       })
       .catch((err) => {
         console.error(err);
@@ -141,6 +149,19 @@ export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorit
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {standings && (
+            <div className="team-section">
+              <div className="team-section-title">
+                Tabla de posiciones{profile.leagueName ? ` — ${profile.leagueName}` : ""}
+              </div>
+              <StandingsTable
+                standings={standings}
+                onSelectTeam={onSelectTeam}
+                highlightTeamId={profile.id}
+              />
             </div>
           )}
 

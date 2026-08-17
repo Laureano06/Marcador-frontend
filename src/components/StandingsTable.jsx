@@ -1,4 +1,4 @@
-export default function StandingsTable({ standings, onSelectTeam }) {
+export default function StandingsTable({ standings, onSelectTeam, highlightTeamId }) {
   if (!standings || standings.length === 0) {
     return (
       <p className="empty">
@@ -26,7 +26,15 @@ export default function StandingsTable({ standings, onSelectTeam }) {
         </thead>
         <tbody>
           {standings.map((row) => (
-            <tr key={row.teamId} onClick={() => onSelectTeam(row.teamId)}>
+            <tr
+              key={row.teamId}
+              onClick={() => onSelectTeam(row.teamId)}
+              className={
+                highlightTeamId != null && String(row.teamId) === String(highlightTeamId)
+                  ? "standings-row-highlight"
+                  : undefined
+              }
+            >
               <td className="col-rank">{row.rank ?? "-"}</td>
               <td className="col-team">
                 <div className="standings-team">
