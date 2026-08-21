@@ -123,14 +123,14 @@ export default function App() {
           <div className="logo-row">
             <button className="logo logo-btn" onClick={goHome}>
               <span className="dot" />
-              MARCADOR
+              PARTIDOS
             </button>
             <button
               className={"fav-filter" + (onlyFavorites ? " active" : "")}
               onClick={() => setOnlyFavorites((v) => !v)}
               title="Mostrar solo mis favoritos"
             >
-              ★ Favoritos
+               FAVORITOS
             </button>
           </div>
 
