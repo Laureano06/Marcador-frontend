@@ -14,12 +14,6 @@
   --accent-dim: rgba(214, 214, 214, 0.16);
   --gray-mid: #8a8a8d;
   --live: #ffffff;
-  --win-bg: #f2f2f0;
-  --win-text: #1c1c1e;
-  --draw-bg: rgba(255, 255, 255, 0.25);
-  --draw-text: #ffffff;
-  --loss-bg: #141416;
-  --loss-text: #e8e8e8;
   --font-display: "Oswald", sans-serif;
   --font-mono: "Space Mono", monospace;
   --font-body: "Inter", sans-serif;
@@ -944,18 +938,20 @@ footer {
   font-size: 11px;
 }
 
+/* Ganó/Empató/Perdió: excepción a la paleta en escala de grises del resto
+   del sitio — acá el color es justamente lo que hace legible de un
+   vistazo el resultado, así que usamos verde/amarillo/rojo a propósito. */
 .form-chip.result-G {
-  background: var(--win-bg);
-  color: var(--win-text);
+  background: #3ecf6e;
+  color: #0a2213;
 }
 .form-chip.result-E {
-  background: var(--draw-bg);
-  color: var(--draw-text);
+  background: #e8c547;
+  color: #3a2e05;
 }
 .form-chip.result-P {
-  background: var(--loss-bg);
-  color: var(--loss-text);
-  border: 1px solid var(--line);
+  background: #e5534b;
+  color: #2b0906;
 }
 
 .form-list {
@@ -988,17 +984,16 @@ footer {
   flex-shrink: 0;
 }
 .form-badge.result-G {
-  background: var(--win-bg);
-  color: var(--win-text);
+  background: #3ecf6e;
+  color: #0a2213;
 }
 .form-badge.result-E {
-  background: var(--draw-bg);
-  color: var(--draw-text);
+  background: #e8c547;
+  color: #3a2e05;
 }
 .form-badge.result-P {
-  background: var(--loss-bg);
-  color: var(--loss-text);
-  border: 1px solid var(--line);
+  background: #e5534b;
+  color: #2b0906;
 }
 
 .form-opponent {
