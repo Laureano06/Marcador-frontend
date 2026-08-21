@@ -10,10 +10,11 @@
   --text: #ffffff;
   --text-dim: rgba(255, 255, 255, 0.6);
   --text-dimmer: rgba(255, 255, 255, 0.32);
-  --accent: #d6d6d6;
-  --accent-dim: rgba(214, 214, 214, 0.16);
+  --accent: #3b811f; /* verde de marca de BeSoccer */
+  --accent-text: #ffffff; /* texto sobre fondo --accent: blanco da mejor contraste que oscuro */
+  --accent-dim: rgba(59, 129, 31, 0.18);
   --gray-mid: #8a8a8d;
-  --live: #ffffff;
+  --live: #e0342a; /* rojo para "en vivo", como BeSoccer */
   --font-display: "Oswald", sans-serif;
   --font-mono: "Space Mono", monospace;
   --font-body: "Inter", sans-serif;
@@ -131,7 +132,7 @@ body {
 }
 
 .league-sidebar-item.active {
-  color: var(--bg);
+  color: var(--accent-text);
   background: var(--accent);
   border-color: var(--accent);
 }
@@ -231,7 +232,7 @@ header {
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 10px rgba(59, 129, 31, 0.7);
 }
 
 .fav-filter {
@@ -254,7 +255,7 @@ header {
 }
 
 .fav-filter.active {
-  color: var(--bg);
+  color: var(--accent-text);
   background: var(--accent);
   border-color: var(--accent);
 }
@@ -443,7 +444,7 @@ header {
 }
 
 .date-chip.active {
-  color: var(--bg);
+  color: var(--accent-text);
   background: var(--accent);
   border-color: var(--accent);
 }
@@ -652,7 +653,7 @@ header {
 }
 
 .status-badge.live {
-  color: var(--bg);
+  color: var(--accent-text);
   background: var(--live);
   border: 1px solid var(--live);
 }
@@ -662,7 +663,7 @@ header {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--bg);
+  background: var(--accent-text);
   margin-right: 4px;
   animation: pulse 1.1s infinite;
 }
@@ -942,16 +943,16 @@ footer {
    del sitio — acá el color es justamente lo que hace legible de un
    vistazo el resultado, así que usamos verde/amarillo/rojo a propósito. */
 .form-chip.result-G {
-  background: #3ecf6e;
-  color: #0a2213;
+  background: var(--accent);
+  color: var(--accent-text);
 }
 .form-chip.result-E {
   background: #e8c547;
   color: #3a2e05;
 }
 .form-chip.result-P {
-  background: #e5534b;
-  color: #2b0906;
+  background: var(--live);
+  color: var(--accent-text);
 }
 
 .form-list {
@@ -984,16 +985,16 @@ footer {
   flex-shrink: 0;
 }
 .form-badge.result-G {
-  background: #3ecf6e;
-  color: #0a2213;
+  background: var(--accent);
+  color: var(--accent-text);
 }
 .form-badge.result-E {
   background: #e8c547;
   color: #3a2e05;
 }
 .form-badge.result-P {
-  background: #e5534b;
-  color: #2b0906;
+  background: var(--live);
+  color: var(--accent-text);
 }
 
 .form-opponent {
@@ -1055,7 +1056,7 @@ footer {
   bottom: -2px;
   right: -2px;
   background: var(--accent);
-  color: var(--bg);
+  color: var(--accent-text);
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: 9px;
@@ -1122,7 +1123,7 @@ footer {
 }
 
 .tab-btn.active {
-  color: var(--bg);
+  color: var(--accent-text);
   background: var(--accent);
   border-color: var(--accent);
 }
