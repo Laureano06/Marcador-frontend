@@ -44,14 +44,14 @@ function LineupSide({ side }) {
   );
 }
 
-export default function MatchDetail({ matchId, leagueSlug, onBack }) {
+export default function MatchDetail({ matchId, onBack }) {
   const [detail, setDetail] = useState(null);
   const [status, setStatus] = useState("loading"); // loading | ok | error
 
   useEffect(() => {
     setStatus("loading");
     setDetail(null);
-    fetchMatchDetail(matchId, leagueSlug)
+    fetchMatchDetail(matchId)
       .then((data) => {
         setDetail(data);
         setStatus("ok");
@@ -60,7 +60,7 @@ export default function MatchDetail({ matchId, leagueSlug, onBack }) {
         console.error(err);
         setStatus("error");
       });
-  }, [matchId, leagueSlug]);
+  }, [matchId]);
 
   return (
     <div className="match-detail">

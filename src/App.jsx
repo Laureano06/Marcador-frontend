@@ -28,7 +28,7 @@ export default function App() {
   // Partido puntual seleccionado (estadísticas + alineación). Tiene
   // prioridad sobre todo lo demás: se puede abrir desde el feed del día,
   // desde la página de una liga, o (más adelante) desde donde sea.
-  const [selectedMatch, setSelectedMatch] = useState(null); // { id, leagueId }
+  const [selectedMatch, setSelectedMatch] = useState(null); // { id }
 
   const touchStartX = useRef(null);
 
@@ -85,7 +85,7 @@ export default function App() {
   };
 
   const openMatch = (match) => {
-    setSelectedMatch({ id: match.id, leagueId: match.leagueId });
+    setSelectedMatch({ id: match.id });
   };
 
   const goHome = () => {
@@ -152,7 +152,6 @@ export default function App() {
         {selectedMatch ? (
           <MatchDetail
             matchId={selectedMatch.id}
-            leagueSlug={selectedMatch.leagueId}
             onBack={() => setSelectedMatch(null)}
           />
         ) : selectedTeamId ? (

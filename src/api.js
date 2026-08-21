@@ -57,10 +57,8 @@ export async function fetchLeagueMatches(slug) {
   return res.json(); // { updatedAt, matches: [...] }
 }
 
-export async function fetchMatchDetail(matchId, leagueSlug) {
-  const res = await fetch(
-    `${API_BASE}/api/matches/${matchId}?league=${encodeURIComponent(leagueSlug)}`
-  );
+export async function fetchMatchDetail(matchId) {
+  const res = await fetch(`${API_BASE}/api/matches/${matchId}`);
   if (!res.ok) {
     throw new Error(`API respondió ${res.status}`);
   }
