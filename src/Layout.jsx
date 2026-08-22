@@ -11,6 +11,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const [leagues, setLeagues] = useState([]);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const favorites = useFavorites();
 
@@ -34,15 +35,31 @@ export default function Layout() {
 
   return (
     <div className="app-shell">
+      {/* El backdrop solo se ve (y solo existe en el DOM con la clase
+          "visible") en mobile, cuando el cajón de ligas está abierto. */}
+      <div
+        className={"sidebar-backdrop" + (sidebarOpen ? " visible" : "")}
+        onClick={() => setSidebarOpen(false)}
+      />
+
       <LeagueSidebar
         leagues={leagues}
         activeSlug={activeLeagueSlug}
         onSelect={openLeague}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
       <div className="wrap">
         <header>
           <div className="logo-row">
+            <button
+              className="hamburger-btn"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Abrir ligas"
+            >
+              ☰
+            </button>
             <button className="logo logo-btn" onClick={goHome}>
               <span className="dot" />
               MARCADOR

@@ -29,6 +29,11 @@
 html,
 body {
   overscroll-behavior-x: none; /* que el swipe no dispare "volver atrás" del navegador */
+  /* Resguardo: si algo en el árbol se pasa de ancho por cualquier motivo
+     que no cubrimos con min-width:0 en los contenedores, esto evita que
+     toda la página quede con scroll horizontal en mobile. */
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
@@ -46,6 +51,24 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  width: 100%;
+  min-width: 0; /* clave para el fix de ancho en mobile, ver nota abajo */
+}
+
+/* FIX DE ANCHO EN MOBILE: por default, un hijo flex no se achica más
+   allá del ancho de su contenido (min-width:auto implícito). Si adentro
+   hay algo ancho (la tabla de posiciones, por ejemplo), todo el layout se
+   estira más allá del viewport y aparece scroll horizontal en toda la
+   página, aunque ese elemento puntual ya tenga su propio overflow-x:auto.
+   Forzar min-width:0 en toda la cadena de contenedores deja que el
+   overflow interno haga su trabajo como corresponde. */
+.wrap,
+.league-page,
+.team-detail,
+.match-detail,
+.feed-viewport,
+.feed-slide {
+  min-width: 0;
 }
 
 .wrap {
@@ -55,89 +78,188 @@ body {
   padding: 0 0 60px;
 }
 
-/* --- Sidebar de ligas (mobile-first: tira desplegable arriba) --- */
-.league-sidebar {
-  order: -1;
-  width: 100%;
-  border-bottom: 1px solid var(--line);
-  background: var(--bg-strip);
-}
-
-.league-sidebar-title {
-  display: none; /* solo tiene sentido en el layout vertical de escritorio */
-}
-
-.league-sidebar-toggle {
+/* --- Botón hamburguesa (solo mobile, abre el cajón de ligas) --- */
+.hamburger-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  width: 100%;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+
+.hamburger-btn:hover {
+  border-color: var(--text-dimmer);
+  background: var(--bg-card);
+}
+
+.hamburger-btn:active {
+  transform: scale(0.92);
+}
+
+/* --- Fondo oscuro detrás del cajón, en mobile --- */
+.sidebar-backdrop {
+  display: none;
+}
+
+.sidebar-backdrop.visible {
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 40;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* --- Sidebar de ligas: cajón deslizable en mobile --- */
+.league-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(82vw, 300px);
+  background: var(--bg-strip);
+  border-right: 1px solid var(--line);
+  z-index: 50;
+  overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+}
+
+.league-sidebar.open {
+  transform: translateX(0);
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.4);
+}
+
+.league-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.league-sidebar-title-mobile {
   font-family: var(--font-mono);
   font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dimmer);
+}
+
+.league-sidebar-close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.league-sidebar-close:hover {
+  color: var(--text);
+  border-color: var(--text-dimmer);
+  transform: rotate(90deg);
+}
+
+/* --- Acordeón por región --- */
+.region-group {
+  border-bottom: 1px solid var(--line);
+}
+
+.region-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
   color: var(--text-dim);
   background: transparent;
   border: none;
-  padding: 10px 14px;
+  padding: 12px 14px;
   cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
-.league-sidebar-toggle .chevron {
-  transition: transform 0.15s ease;
+.region-header:hover {
+  color: var(--text);
+  background: var(--bg-card);
+}
+
+.region-header .chevron {
+  transition: transform 0.2s ease;
   font-size: 10px;
+  color: var(--text-dimmer);
 }
 
-.league-sidebar-toggle .chevron.open {
+.region-header .chevron.open {
   transform: rotate(180deg);
-}
-
-.league-sidebar.collapsed ul {
-  display: none;
 }
 
 .league-sidebar ul {
   list-style: none;
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding: 0 12px 10px;
-  scrollbar-width: none;
-}
-
-.league-sidebar ul::-webkit-scrollbar {
-  display: none;
+  padding: 0 8px 8px;
 }
 
 .league-sidebar-item {
-  flex-shrink: 0;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: 13px;
   color: var(--text-dim);
   background: transparent;
-  border: 1px solid var(--line);
-  padding: 7px 12px;
-  border-radius: 16px;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 12px;
+  margin-bottom: 2px;
   cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease,
+    box-shadow 0.15s ease;
 }
 
 .league-sidebar-item:hover {
   color: var(--text);
-  border-color: var(--text-dimmer);
+  background: var(--bg-card-hover);
+  transform: translateX(2px);
+}
+
+.league-sidebar-item:active {
+  transform: translateX(2px) scale(0.98);
 }
 
 .league-sidebar-item.active {
   color: var(--accent-text);
   background: var(--accent);
-  border-color: var(--accent);
+  box-shadow: 0 2px 10px var(--accent-dim);
 }
 
-/* Desktop: sidebar vertical fija a la izquierda, siempre expandida. */
+/* Desktop: la sidebar deja de ser un cajón flotante y pasa a ser una
+   columna fija de siempre, sin backdrop ni botón hamburguesa. */
 @media (min-width: 900px) {
   .app-shell {
     align-items: flex-start;
@@ -147,44 +269,28 @@ body {
     padding-top: 24px;
   }
 
+  .hamburger-btn,
+  .league-sidebar-close,
+  .league-sidebar-header {
+    display: none;
+  }
+
+  .sidebar-backdrop {
+    display: none !important;
+  }
+
   .league-sidebar {
-    order: 0;
-    width: 200px;
-    flex-shrink: 0;
-    border-bottom: none;
-    border: 1px solid var(--line);
-    border-radius: 10px;
     position: sticky;
     top: 24px;
-  }
-
-  .league-sidebar-title {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--text-dimmer);
-    padding: 14px 14px 4px;
-  }
-
-  .league-sidebar-toggle {
-    display: none; /* en desktop siempre está expandida, no hace falta el botón */
-  }
-
-  .league-sidebar.collapsed ul {
-    display: flex; /* override: ignorar el estado colapsado en desktop */
-  }
-
-  .league-sidebar ul {
-    flex-direction: column;
-    overflow-x: visible;
-    padding: 6px;
-  }
-
-  .league-sidebar-item {
-    text-align: left;
-    width: 100%;
+    left: auto;
+    bottom: auto;
+    width: 220px;
+    flex-shrink: 0;
+    min-width: 0;
+    max-height: calc(100vh - 48px);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    transform: none;
   }
 }
 
@@ -276,11 +382,12 @@ header {
   border-radius: 8px;
   padding: 10px 12px;
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .search-input:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
 }
 
 .search-input::placeholder {
@@ -441,6 +548,7 @@ header {
 .date-chip:hover {
   color: var(--text);
   border-color: var(--text-dimmer);
+  transform: translateY(-1px);
 }
 
 .date-chip.active {
@@ -526,12 +634,20 @@ header {
   padding: 14px 16px;
   margin-bottom: 8px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .match:hover {
   background: var(--bg-card-hover);
   border-color: var(--text-dimmer);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.match:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .match-top {
@@ -757,6 +873,7 @@ footer {
 .back-btn:hover {
   color: var(--text);
   border-color: var(--text-dimmer);
+  transform: translateX(-2px);
 }
 
 .team-header {
@@ -837,6 +954,12 @@ footer {
   border-radius: 8px;
   padding: 10px 6px;
   text-align: center;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.stat-box:hover {
+  transform: translateY(-2px);
+  border-color: var(--text-dimmer);
 }
 
 .stat-value {
@@ -1043,6 +1166,12 @@ footer {
   border: 1px solid var(--line);
   overflow: hidden;
   margin-bottom: 6px;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.squad-player:hover .squad-player-photo {
+  box-shadow: 0 0 0 2px var(--accent);
+  transform: scale(1.05);
 }
 
 .squad-player-photo img {
@@ -1120,12 +1249,14 @@ footer {
 .tab-btn:hover {
   color: var(--text);
   border-color: var(--text-dimmer);
+  transform: translateY(-1px);
 }
 
 .tab-btn.active {
   color: var(--accent-text);
   background: var(--accent);
   border-color: var(--accent);
+  box-shadow: 0 2px 10px var(--accent-dim);
 }
 
 /* --- Tabla de posiciones --- */
@@ -1161,11 +1292,12 @@ footer {
 
 .standings-table tbody tr {
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background 0.12s ease, box-shadow 0.12s ease;
 }
 
 .standings-table tbody tr:hover {
   background: var(--bg-card);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .standings-row-highlight {
