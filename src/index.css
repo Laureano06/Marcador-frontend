@@ -1,20 +1,22 @@
 :root {
-  /* Paleta estrictamente en escala de grises: blanco, negro, y tonos de
-     gris entre medio — sin ningún color con matiz (nada de rojo, verde,
-     azul, etc.) en ningún elemento. */
-  --bg: #242426;
-  --bg-card: #303032;
-  --bg-card-hover: #3a3a3d;
-  --bg-strip: #1c1c1e;
+  /* Paleta sacada del ícono de la app (iconoPARTIDOS.png): navy de fondo,
+     blanco de la letra "P", y un azul derivado del mismo matiz para los
+     estados interactivos (el ícono en sí es monocromo, no tiene un color
+     de acento propio, así que este azul es una extensión coherente del
+     mismo tono, no un color inventado aparte). */
+  --bg: #0f1a2d; /* navy exacto del fondo del ícono */
+  --bg-card: #182339;
+  --bg-card-hover: #212d48;
+  --bg-strip: #0a1322;
   --line: rgba(255, 255, 255, 0.1);
-  --text: #ffffff;
+  --text: #ffffff; /* blanco exacto de la "P" del ícono */
   --text-dim: rgba(255, 255, 255, 0.6);
   --text-dimmer: rgba(255, 255, 255, 0.32);
-  --accent: #3b811f; /* verde de marca de BeSoccer */
-  --accent-text: #ffffff; /* texto sobre fondo --accent: blanco da mejor contraste que oscuro */
-  --accent-dim: rgba(59, 129, 31, 0.18);
-  --gray-mid: #8a8a8d;
-  --live: #e0342a; /* rojo para "en vivo", como BeSoccer */
+  --accent: #2c69d2; /* mismo matiz del navy, más claro — para estados activos */
+  --accent-text: #ffffff;
+  --accent-dim: rgba(44, 105, 210, 0.2);
+  --gray-mid: #6b7688;
+  --live: #e0342a; /* rojo para "en vivo" — es información, no decoración */
   --font-display: "Oswald", sans-serif;
   --font-mono: "Space Mono", monospace;
   --font-body: "Inter", sans-serif;
@@ -333,12 +335,11 @@ header {
   padding: 0;
 }
 
-.logo .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 10px rgba(59, 129, 31, 0.7);
+.logo-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px; /* mismo esquinado redondeado que el ícono original */
+  box-shadow: 0 0 12px rgba(44, 105, 210, 0.5);
 }
 
 .fav-filter {

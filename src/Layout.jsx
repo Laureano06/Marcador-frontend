@@ -61,8 +61,8 @@ export default function Layout() {
               ☰
             </button>
             <button className="logo logo-btn" onClick={goHome}>
-              <span className="dot" />
-              MARCADOR
+              <img className="logo-icon" src="/iconoPARTIDOS.png" alt="" />
+              PARTIDOS
             </button>
             <button
               className={"fav-filter" + (onlyFavorites ? " active" : "")}
