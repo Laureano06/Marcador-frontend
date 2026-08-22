@@ -61,16 +61,19 @@ export function labelForDate(dateKey) {
 // (campo raw.league.name) — si agregás una liga nueva y no aparece en el
 // orden que esperás, revisá que el nombre esté bien escrito acá.
 export const LEAGUE_ORDER = [
-  "Liga Argentina",
+  "Liga Profesional Argentina",
   "Copa Argentina",
   "Copa Libertadores",
   "Copa Sudamericana",
+  "Mundial",
   "UEFA Champions League",
   "Premier League",
   "La Liga",
   "Serie A",
   "Bundesliga",
   "Ligue 1",
+  "Primeira Liga",
+  "Eredivisie",
   "Brasileirão",
 ];
 
