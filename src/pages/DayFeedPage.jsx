@@ -91,9 +91,21 @@ export default function DayFeedPage() {
           <div className="day-heading">{labelForDate(date)}</div>
 
           {status === "error" && (
-            <p className="error-banner">
-              No pude conectar con el backend. ¿Está corriendo la API?
-            </p>
+            <div className="error-state">
+              <p className="error-state-title">No pudimos cargar los partidos</p>
+              <p className="error-state-subtitle">
+                Puede ser algo pasajero — probá de nuevo en un momento.
+              </p>
+              <button
+                className="error-state-retry"
+                onClick={() => {
+                  setStatus("loading");
+                  load(date);
+                }}
+              >
+                Reintentar
+              </button>
+            </div>
           )}
           {status === "loading" && <p className="empty">Cargando partidos…</p>}
           {status === "ok" && (

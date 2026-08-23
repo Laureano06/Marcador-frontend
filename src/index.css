@@ -841,6 +841,54 @@ header {
   font-weight: 700;
 }
 
+/* Cartel de error amigable con botón de reintentar (feed del día) */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  margin-top: 48px;
+  padding: 24px 20px;
+}
+
+.error-state-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.error-state-subtitle {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.error-state-retry {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--accent-text);
+  background: var(--accent);
+  border: none;
+  padding: 9px 20px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.error-state-retry:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px var(--accent-dim);
+}
+
+.error-state-retry:active {
+  transform: translateY(0);
+}
+
 footer {
   margin-top: 30px;
   padding: 0 18px;
