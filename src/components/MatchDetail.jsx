@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchMatchDetail } from "../api";
 import { crestColor } from "../utils";
+import LineupPitch from "./LineupPitch";
 
 function TeamHeader({ team, side }) {
   if (!team) return <div className={"match-detail-team " + side} />;
@@ -20,26 +21,27 @@ function TeamHeader({ team, side }) {
   );
 }
 
-function LineupSide({ side }) {
-  if (!side) return null;
+function Predictions({ predictions, home, away }) {
   return (
-    <div className="lineup-side">
-      <div className="lineup-team-name">
-        {side.teamName}
-        {side.formation ? ` (${side.formation})` : ""}
-      </div>
-      {side.starters.length === 0 && (
-        <p className="empty" style={{ marginTop: 0 }}>
-          Sin datos todavía.
-        </p>
-      )}
-      {side.starters.map((p) => (
-        <div key={p.id} className="lineup-player">
-          <span className="lineup-player-number">{p.number ?? "-"}</span>
-          <span className="lineup-player-name">{p.name}</span>
-          {p.position && <span className="lineup-player-position">{p.position}</span>}
+    <div className="team-section">
+      <div className="team-section-title">Pronóstico</div>
+      <div className="prob">
+        <div className="prob-bar">
+          <div className="home" style={{ width: `${predictions.home}%` }} />
+          <div className="draw" style={{ width: `${predictions.draw}%` }} />
+          <div className="away" style={{ width: `${predictions.away}%` }} />
         </div>
-      ))}
+        <div className="prob-labels">
+          <span>
+            {home?.name ?? "Local"} {predictions.home.toFixed(0)}%
+          </span>
+          <span>Empate {predictions.draw.toFixed(0)}%</span>
+          <span>
+            {away?.name ?? "Visitante"} {predictions.away.toFixed(0)}%
+          </span>
+        </div>
+      </div>
+      {predictions.advice && <p className="prediction-advice">{predictions.advice}</p>}
     </div>
   );
 }
@@ -99,6 +101,10 @@ export default function MatchDetail({ matchId, onBack }) {
             <TeamHeader team={detail.away} side="away" />
           </div>
 
+          {detail.predictions && (
+            <Predictions predictions={detail.predictions} home={detail.home} away={detail.away} />
+          )}
+
           {detail.statistics && (
             <div className="team-section">
               <div className="team-section-title">Estadísticas</div>
@@ -121,10 +127,7 @@ export default function MatchDetail({ matchId, onBack }) {
                   ? "Alineación probable"
                   : "Alineación"}
               </div>
-              <div className="lineup-columns">
-                <LineupSide side={detail.lineups.home} />
-                <LineupSide side={detail.lineups.away} />
-              </div>
+              <LineupPitch home={detail.lineups.home} away={detail.lineups.away} />
             </div>
           )}
 

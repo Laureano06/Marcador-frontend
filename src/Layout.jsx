@@ -1,36 +1,57 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Outlet, useNavigate, useMatch } from "react-router-dom";
-import { fetchLeagues } from "./api";
+import { fetchDay } from "./api";
 import { toDateKey, addDays } from "./utils";
 import { useFavorites } from "./useFavorites";
 import LeagueSidebar from "./components/LeagueSidebar";
 import SearchBar from "./components/SearchBar";
 import DateStrip from "./components/DateStrip";
 
+const POLL_MS = 60000;
+
 export default function Layout() {
   const navigate = useNavigate();
-  const [leagues, setLeagues] = useState([]);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeLeague, setActiveLeague] = useState(null);
+
+  const [matches, setMatches] = useState([]);
+  const [matchesStatus, setMatchesStatus] = useState("loading"); // loading | ok | error
 
   const favorites = useFavorites();
 
   // Solo en la ruta del feed por día mostramos el paginador de fechas —
-  // en cualquier otra ruta (equipo, liga, partido) no tiene sentido.
+  // en cualquier otra ruta (equipo, partido) no tiene sentido. El sidebar
+  // de ligas sí necesita SIEMPRE una fecha de referencia (así el usuario
+  // ve categorías con contenido incluso mirando una ficha de equipo) —
+  // por default usa hoy.
   const dayMatch = useMatch("/fecha/:date");
   const activeDate = dayMatch?.params.date;
+  const feedDate = activeDate || toDateKey(new Date());
 
-  const leagueMatch = useMatch("/liga/:slug");
-  const activeLeagueSlug = leagueMatch?.params.slug;
-
-  useEffect(() => {
-    fetchLeagues()
-      .then(setLeagues)
-      .catch((err) => console.error("No se pudo cargar la lista de ligas", err));
+  const load = useCallback(async (dateKey) => {
+    try {
+      const { matches } = await fetchDay(dateKey);
+      setMatches(matches);
+      setMatchesStatus("ok");
+    } catch (err) {
+      console.error(err);
+      setMatchesStatus("error");
+    }
   }, []);
 
+  useEffect(() => {
+    setMatchesStatus("loading");
+    setActiveLeague(null); // cambiar de día invalida el filtro de liga anterior
+    load(feedDate);
+  }, [feedDate, load]);
+
+  useEffect(() => {
+    const id = setInterval(() => load(feedDate), POLL_MS);
+    return () => clearInterval(id);
+  }, [feedDate, load]);
+
   const goHome = () => navigate(`/fecha/${toDateKey(new Date())}`);
-  const openLeague = (slug) => navigate(`/liga/${slug}`);
   const openTeam = (id) => navigate(`/equipo/${id}`);
 
   return (
@@ -43,9 +64,9 @@ export default function Layout() {
       />
 
       <LeagueSidebar
-        leagues={leagues}
-        activeSlug={activeLeagueSlug}
-        onSelect={openLeague}
+        matches={matches}
+        activeLeague={activeLeague}
+        onSelect={setActiveLeague}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
@@ -99,7 +120,17 @@ export default function Layout() {
           )}
         </header>
 
-        <Outlet context={{ leagues, onlyFavorites, ...favorites }} />
+        <Outlet
+          context={{
+            matches,
+            matchesStatus,
+            reloadMatches: () => load(feedDate),
+            onlyFavorites,
+            activeLeague,
+            onClearLeagueFilter: () => setActiveLeague(null),
+            ...favorites,
+          }}
+        />
       </div>
     </div>
   );

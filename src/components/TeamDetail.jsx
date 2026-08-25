@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { fetchTeamProfile, fetchLeagueStandings } from "../api";
+import { fetchTeamProfile } from "../api";
+import { crestColor } from "../utils";
 import FavoriteButton from "./FavoriteButton";
-import StandingsTable from "./StandingsTable";
 
 const POSITION_ORDER = ["Goalkeepers", "Defenders", "Midfielders", "Forwards"];
 const POSITION_LABEL = {
@@ -23,32 +23,29 @@ function groupSquadByPosition(squad) {
   );
 }
 
-const RESULT_LABEL = { G: "G", E: "E", P: "P" };
-
-export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorite, onSelectTeam }) {
+export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorite }) {
   const [profile, setProfile] = useState(null);
   const [status, setStatus] = useState("loading"); // loading | ok | error
-  const [standings, setStandings] = useState(null);
 
   useEffect(() => {
     setStatus("loading");
     setProfile(null);
-    setStandings(null);
     fetchTeamProfile(teamId)
       .then((data) => {
         setProfile(data);
         setStatus("ok");
-        if (data.leagueSlug) {
-          fetchLeagueStandings(data.leagueSlug)
-            .then((res) => setStandings(res.standings))
-            .catch((err) => console.error("No se pudo cargar la tabla", err));
-        }
       })
       .catch((err) => {
         console.error(err);
         setStatus("error");
       });
   }, [teamId]);
+
+  // "Impronta" del club: no todos tienen colores de marca cargados en la
+  // API, así que usamos el mismo hash de color que ya se usa como
+  // fallback del escudo — cada club se ve siempre con SU color, estable
+  // entre visitas, sin depender de un dato que puede faltar.
+  const identityColor = profile ? crestColor(profile.name) : null;
 
   return (
     <div className="team-detail">
@@ -63,7 +60,10 @@ export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorit
 
       {status === "ok" && profile && (
         <>
-          <div className="team-header">
+          <div
+            className="team-header"
+            style={{ "--identity-color": identityColor }}
+          >
             {profile.crest && (
               <div className="team-header-crest">
                 <img src={profile.crest} alt="" />
@@ -95,135 +95,6 @@ export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorit
               )}
             </div>
           </div>
-
-          {profile.stats && (
-            <div className="team-section">
-              <div className="team-section-title">Estadísticas</div>
-              <div className="stats-grid">
-                {profile.stats.rank != null && (
-                  <div className="stat-box">
-                    <div className="stat-value">{profile.stats.rank}°</div>
-                    <div className="stat-label">Posición</div>
-                  </div>
-                )}
-                {profile.stats.points != null && (
-                  <div className="stat-box">
-                    <div className="stat-value">{profile.stats.points}</div>
-                    <div className="stat-label">Puntos</div>
-                  </div>
-                )}
-                {profile.stats.played != null && (
-                  <div className="stat-box">
-                    <div className="stat-value">{profile.stats.played}</div>
-                    <div className="stat-label">Jugados</div>
-                  </div>
-                )}
-                {profile.stats.wins != null && (
-                  <div className="stat-box">
-                    <div className="stat-value">{profile.stats.wins}</div>
-                    <div className="stat-label">Ganados</div>
-                  </div>
-                )}
-                {profile.stats.draws != null && (
-                  <div className="stat-box">
-                    <div className="stat-value">{profile.stats.draws}</div>
-                    <div className="stat-label">Empatados</div>
-                  </div>
-                )}
-                {profile.stats.losses != null && (
-                  <div className="stat-box">
-                    <div className="stat-value">{profile.stats.losses}</div>
-                    <div className="stat-label">Perdidos</div>
-                  </div>
-                )}
-                {profile.stats.goalsFor != null && (
-                  <div className="stat-box">
-                    <div className="stat-value">{profile.stats.goalsFor}</div>
-                    <div className="stat-label">Goles a favor</div>
-                  </div>
-                )}
-                {profile.stats.goalsAgainst != null && (
-                  <div className="stat-box">
-                    <div className="stat-value">{profile.stats.goalsAgainst}</div>
-                    <div className="stat-label">Goles en contra</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {standings && (
-            <div className="team-section">
-              <div className="team-section-title">
-                Tabla de posiciones{profile.leagueName ? ` — ${profile.leagueName}` : ""}
-              </div>
-              <StandingsTable
-                standings={standings}
-                onSelectTeam={onSelectTeam}
-                highlightTeamId={profile.id}
-              />
-            </div>
-          )}
-
-          {profile.liveLineup && (
-            <div className="team-section">
-              <div className="team-section-title">
-                <span className="live-dot" /> Alineación — en vivo
-              </div>
-              <div className="lineup-columns">
-                {[profile.liveLineup.home, profile.liveLineup.away].map(
-                  (side, i) =>
-                    side && (
-                      <div className="lineup-side" key={i}>
-                        <div className="lineup-team-name">
-                          {side.teamName}
-                          {side.formation ? ` (${side.formation})` : ""}
-                        </div>
-                        {side.starters.map((p) => (
-                          <div key={p.id} className="lineup-player">
-                            <span className="lineup-player-number">
-                              {p.number ?? "-"}
-                            </span>
-                            <span className="lineup-player-name">{p.name}</span>
-                            {p.position && (
-                              <span className="lineup-player-position">
-                                {p.position}
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )
-                )}
-              </div>
-            </div>
-          )}
-
-          {profile.recentForm.length > 0 && (
-            <div className="team-section">
-              <div className="team-section-title">Últimos partidos</div>
-              <div className="form-strip">
-                {profile.recentForm.map((m, i) => (
-                  <div key={i} className={"form-chip result-" + m.result}>
-                    {RESULT_LABEL[m.result]}
-                  </div>
-                ))}
-              </div>
-              <div className="form-list">
-                {profile.recentForm.map((m, i) => (
-                  <div key={i} className="form-row">
-                    <span className={"form-badge result-" + m.result}>
-                      {RESULT_LABEL[m.result]}
-                    </span>
-                    <span className="form-opponent">vs {m.opponent}</span>
-                    <span className="form-score">
-                      {m.goalsFor}-{m.goalsAgainst}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {profile.squad.length > 0 && (
             <div className="team-section">

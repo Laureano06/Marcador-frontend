@@ -10,7 +10,6 @@ export default function TeamDetailPage() {
     <TeamDetail
       teamId={id}
       onBack={() => navigate(-1)}
-      onSelectTeam={(newId) => navigate(`/equipo/${newId}`)}
       isFavorite={isTeamFavorite(id)}
       onToggleFavorite={() => toggleTeam(id)}
     />

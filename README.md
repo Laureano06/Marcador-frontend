@@ -1,23 +1,29 @@
-# Marcador — frontend (React + Vite)
-
-Versión en React del demo original. Mismo look, pero ahora con:
-
-- Componentes separados (`LeagueTabs`, `MatchFeed`, `MatchCard`)
-- Estado real con `useState`/`useEffect` en vez de manipular el DOM a mano
-- Polling automático cada 30s contra el backend (`src/App.jsx`)
-- Datos reales del backend en vez de JSON hardcodeado
+# Marcador — frontend (React + Vite + React Router)
 
 ```
 src/
-  api.js               → fetch al backend
-  utils.js              → agrupar por día, formatear hora, color de escudo
-  index.css             → todo el estilo (scoreboard theme)
-  App.jsx                → estado, polling, orquesta todo
+  api.js                 → fetch al backend
+  utils.js                → agrupar por liga/fecha, formatear hora, color de escudo
+  leagueCategories.js     → agrupa las ligas del feed por continente/juveniles/femenino
+  index.css               → todo el estilo (scoreboard theme)
+  App.jsx                 → rutas (React Router)
+  Layout.jsx              → header, sidebar, buscador, y el fetch del feed del día
+  useFavorites.js         → favoritos (equipos/ligas) en localStorage
+  pages/
+    DayFeedPage.jsx        → /fecha/:date
+    TeamDetailPage.jsx     → /equipo/:id
+    MatchDetailPage.jsx    → /partido/:id
   components/
-    LeagueTabs.jsx
-    MatchFeed.jsx
-    MatchCard.jsx
+    LeagueSidebar.jsx      → cajón de ligas por categoría
+    MatchFeed.jsx, MatchCard.jsx
+    TeamDetail.jsx, MatchDetail.jsx, LineupPitch.jsx
+    SearchBar.jsx, DateStrip.jsx, FavoriteButton.jsx
 ```
+
+No hay tabla de posiciones ni "partidos de una liga por temporada": el
+plan free de API-Football no da acceso a esos endpoints para la
+temporada actual (ver el README del backend). El sidebar de ligas
+filtra el feed del día ya cargado, no navega a una página aparte.
 
 ## Cómo correrlo
 
@@ -41,18 +47,3 @@ npm run build
 ```
 
 Genera `dist/`, listo para servir estático (Vercel, Netlify, Nginx, etc.)
-
-## Qué cambia respecto al HTML plano
-
-| | HTML plano | React |
-|---|---|---|
-| Actualizar la vista | `innerHTML` a mano | el estado cambia, React re-renderiza solo |
-| Agregar una página nueva | otro `.html` + copiar CSS/JS | otra ruta con React Router |
-| Repetir la tarjeta de partido | copiar el bloque HTML | un componente (`MatchCard`) reutilizable |
-| Polling | `setInterval` + `innerHTML` manual | `useEffect` + `setInterval`, el DOM se actualiza solo |
-
-## Próximo paso natural
-
-Si vas a sumar más páginas (detalle de partido, tabla de posiciones), este
-es el momento de meter **React Router** (`npm install react-router-dom`) en
-vez de seguir agregando todo dentro de `App.jsx`.

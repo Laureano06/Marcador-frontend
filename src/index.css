@@ -65,7 +65,6 @@ body {
    Forzar min-width:0 en toda la cadena de contenedores deja que el
    overflow interno haga su trabajo como corresponde. */
 .wrap,
-.league-page,
 .team-detail,
 .match-detail,
 .feed-viewport,
@@ -613,6 +612,32 @@ header {
   margin: 18px 0 4px;
 }
 
+/* --- Chip de filtro activo (sidebar -> "solo esta liga") --- */
+.league-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent-text);
+  background: var(--accent);
+  padding: 6px 8px 6px 14px;
+  border-radius: 16px;
+  margin: 10px 0 4px;
+}
+
+.league-filter-chip button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: inherit;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+}
+
 .league-bar {
   font-family: var(--font-display);
   font-weight: 600;
@@ -828,6 +853,14 @@ header {
   color: var(--text-dim);
 }
 
+.prediction-advice {
+  margin-top: 10px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
 .empty,
 .error-banner {
   font-family: var(--font-mono);
@@ -925,11 +958,19 @@ footer {
   transform: translateX(-2px);
 }
 
+/* La "impronta" del club: un degradé sutil con su color hash (mismo que
+   usa el escudo de respaldo) detrás del header — no todos los clubes
+   tienen colores de marca cargados en la API, así que este es un color
+   que SIEMPRE existe y es estable para ese club entre visitas. */
 .team-header {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 24px;
+  margin: -16px -18px 24px;
+  padding: 24px 18px 20px;
+  background: var(--bg-card); /* respaldo si el navegador no soporta color-mix() */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--identity-color) 28%, var(--bg)), var(--bg));
+  border-bottom: 1px solid var(--line);
 }
 
 .team-header-crest {
@@ -1038,25 +1079,121 @@ footer {
   animation: pulse 1.1s infinite;
 }
 
-.lineup-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+/* --- Cancha con formación (LineupPitch) --- */
+.lineup-pitch-wrap {
+  max-width: 340px;
+  margin: 0 auto;
 }
 
-.lineup-side {
-  min-width: 0;
+.lineup-side-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
 }
 
-.lineup-team-name {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 12px;
-  color: var(--text);
-  margin-bottom: 8px;
+.lineup-side-tab {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 8px 6px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.lineup-side-tab:hover {
+  color: var(--text);
+  border-color: var(--text-dimmer);
+}
+
+.lineup-side-tab.active {
+  color: var(--accent-text);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.pitch {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  background: linear-gradient(180deg, #1c6b3a, #164f2c);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.pitch::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 4%;
+  right: 4%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.pitch::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.pitch-player {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 58px;
+}
+
+.pitch-player-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 10.5px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.pitch-player-name {
+  font-family: var(--font-body);
+  font-size: 9.5px;
+  color: #ffffff;
+  text-align: center;
+  line-height: 1.15;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 58px;
+}
+
+.lineup-fallback-list {
+  display: flex;
+  flex-direction: column;
 }
 
 .lineup-player {
@@ -1089,97 +1226,6 @@ footer {
   font-family: var(--font-mono);
   font-size: 9px;
   color: var(--text-dimmer);
-  flex-shrink: 0;
-}
-
-/* --- Forma reciente --- */
-.form-strip {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.form-chip {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 11px;
-}
-
-/* Ganó/Empató/Perdió: excepción a la paleta en escala de grises del resto
-   del sitio — acá el color es justamente lo que hace legible de un
-   vistazo el resultado, así que usamos verde/amarillo/rojo a propósito. */
-.form-chip.result-G {
-  background: var(--accent);
-  color: var(--accent-text);
-}
-.form-chip.result-E {
-  background: #e8c547;
-  color: #3a2e05;
-}
-.form-chip.result-P {
-  background: var(--live);
-  color: var(--accent-text);
-}
-
-.form-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.form-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--bg-card);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 13px;
-}
-
-.form-badge {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 10px;
-  flex-shrink: 0;
-}
-.form-badge.result-G {
-  background: var(--accent);
-  color: var(--accent-text);
-}
-.form-badge.result-E {
-  background: #e8c547;
-  color: #3a2e05;
-}
-.form-badge.result-P {
-  background: var(--live);
-  color: var(--accent-text);
-}
-
-.form-opponent {
-  flex: 1;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.form-score {
-  font-family: var(--font-mono);
-  color: var(--text-dim);
   flex-shrink: 0;
 }
 
@@ -1259,137 +1305,6 @@ footer {
   margin-top: 2px;
 }
 
-/* ============================================================
-   Página de una liga (tabla + partidos)
-   ============================================================ */
-
-.league-page {
-  padding: 0 18px 60px;
-}
-
-.league-page-title {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 20px;
-  color: var(--text);
-  margin: 4px 0 16px;
-}
-
-.tabs-row {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 18px;
-}
-
-.tab-btn {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: var(--text-dim);
-  background: transparent;
-  border: 1px solid var(--line);
-  padding: 8px 16px;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.tab-btn:hover {
-  color: var(--text);
-  border-color: var(--text-dimmer);
-  transform: translateY(-1px);
-}
-
-.tab-btn.active {
-  color: var(--accent-text);
-  background: var(--accent);
-  border-color: var(--accent);
-  box-shadow: 0 2px 10px var(--accent-dim);
-}
-
-/* --- Tabla de posiciones --- */
-.standings-wrap {
-  overflow-x: auto;
-}
-
-.standings-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12.5px;
-}
-
-.standings-table th {
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--text-dimmer);
-  text-align: center;
-  padding: 8px 6px;
-  border-bottom: 1px solid var(--line);
-  white-space: nowrap;
-}
-
-.standings-table td {
-  text-align: center;
-  padding: 8px 6px;
-  border-bottom: 1px solid var(--line);
-  color: var(--text-dim);
-  font-family: var(--font-mono);
-}
-
-.standings-table tbody tr {
-  cursor: pointer;
-  transition: background 0.12s ease, box-shadow 0.12s ease;
-}
-
-.standings-table tbody tr:hover {
-  background: var(--bg-card);
-  box-shadow: inset 3px 0 0 var(--accent);
-}
-
-.standings-row-highlight {
-  background: var(--bg-card);
-}
-
-.standings-row-highlight td {
-  color: var(--text);
-  font-weight: 700;
-}
-
-.col-rank {
-  width: 28px;
-  color: var(--text-dimmer);
-}
-
-.col-team {
-  text-align: left !important;
-}
-
-.standings-team {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-body);
-  color: var(--text);
-  white-space: nowrap;
-}
-
-.standings-team img {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-  background: #fff;
-  border-radius: 50%;
-  padding: 2px;
-  flex-shrink: 0;
-}
-
-.col-points {
-  font-weight: 700;
-  color: var(--text);
-}
 
 /* ============================================================
    Detalle de partido (estadísticas + alineación)

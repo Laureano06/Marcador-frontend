@@ -1,33 +1,26 @@
 import { useState } from "react";
+import { groupLeaguesByCategory } from "../leagueCategories";
 
-function groupByRegion(leagues) {
-  const groups = {};
-  for (const l of leagues) {
-    const key = l.region || "Otras";
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(l);
-  }
-  return groups;
-}
+export default function LeagueSidebar({ matches, activeLeague, onSelect, open, onClose }) {
+  // Qué categorías están COLAPSADAS (no las que están abiertas) — así
+  // todas arrancan expandidas por default sin tener que inicializar la
+  // lista completa de antemano.
+  const [collapsedCategories, setCollapsedCategories] = useState(() => new Set());
 
-export default function LeagueSidebar({ leagues, activeSlug, onSelect, open, onClose }) {
-  // Qué regiones están COLAPSADAS (no las que están abiertas) — así todas
-  // arrancan expandidas por default sin tener que inicializar la lista.
-  const [collapsedRegions, setCollapsedRegions] = useState(() => new Set());
-
-  const toggleRegion = (region) => {
-    setCollapsedRegions((prev) => {
+  const toggleCategory = (category) => {
+    setCollapsedCategories((prev) => {
       const next = new Set(prev);
-      if (next.has(region)) next.delete(region);
-      else next.add(region);
+      if (next.has(category)) next.delete(category);
+      else next.add(category);
       return next;
     });
   };
 
-  const groups = groupByRegion(leagues);
+  const groups = groupLeaguesByCategory(matches);
 
-  const handleSelect = (slug) => {
-    onSelect(slug);
+  // Clickear la liga ya activa la desactiva (vuelve a mostrar todo).
+  const handleSelect = (leagueName) => {
+    onSelect(leagueName === activeLeague ? null : leagueName);
     onClose?.(); // en mobile, elegir una liga cierra el cajón
   };
 
@@ -40,26 +33,29 @@ export default function LeagueSidebar({ leagues, activeSlug, onSelect, open, onC
         </button>
       </div>
 
-      {Object.entries(groups).map(([region, regionLeagues]) => {
-        const isCollapsed = collapsedRegions.has(region);
+      {groups.length === 0 && (
+        <p className="empty" style={{ padding: "0 16px" }}>
+          Cargando ligas…
+        </p>
+      )}
+
+      {groups.map(([category, leagues]) => {
+        const isCollapsed = collapsedCategories.has(category);
         return (
-          <div className="region-group" key={region}>
-            <button
-              className="region-header"
-              onClick={() => toggleRegion(region)}
-            >
-              <span>{region}</span>
+          <div className="region-group" key={category}>
+            <button className="region-header" onClick={() => toggleCategory(category)}>
+              <span>{category}</span>
               <span className={"chevron" + (isCollapsed ? "" : " open")}>▾</span>
             </button>
             {!isCollapsed && (
               <ul>
-                {regionLeagues.map((l) => (
-                  <li key={l.slug}>
+                {leagues.map((l) => (
+                  <li key={l.name}>
                     <button
                       className={
-                        "league-sidebar-item" + (l.slug === activeSlug ? " active" : "")
+                        "league-sidebar-item" + (l.name === activeLeague ? " active" : "")
                       }
-                      onClick={() => handleSelect(l.slug)}
+                      onClick={() => handleSelect(l.name)}
                     >
                       {l.name}
                     </button>

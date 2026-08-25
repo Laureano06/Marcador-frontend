@@ -1,25 +1,26 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
-import { fetchDay } from "../api";
 import { addDays, labelForDate } from "../utils";
 import MatchFeed from "../components/MatchFeed";
 
-const POLL_MS = 60000;
 const SWIPE_THRESHOLD_PX = 60;
 
 export default function DayFeedPage() {
   const { date } = useParams();
   const navigate = useNavigate();
   const {
+    matches,
+    matchesStatus,
+    reloadMatches,
     onlyFavorites,
+    activeLeague,
+    onClearLeagueFilter,
     isTeamFavorite,
     isLeagueFavorite,
     toggleTeam,
     toggleLeague,
   } = useOutletContext();
 
-  const [matches, setMatches] = useState([]);
-  const [status, setStatus] = useState("loading"); // loading | ok | error
   // "left" | "right" | null — de qué lado entra la animación, detectado
   // comparando la fecha nueva con la anterior (funciona tanto con swipe
   // como con el botón atrás/adelante del navegador).
@@ -38,27 +39,6 @@ export default function DayFeedPage() {
     }
   }, [date]);
 
-  const load = useCallback(async (dateKey) => {
-    try {
-      const { matches } = await fetchDay(dateKey);
-      setMatches(matches);
-      setStatus("ok");
-    } catch (err) {
-      console.error(err);
-      setStatus("error");
-    }
-  }, []);
-
-  useEffect(() => {
-    setStatus("loading");
-    load(date);
-  }, [date, load]);
-
-  useEffect(() => {
-    const id = setInterval(() => load(date), POLL_MS);
-    return () => clearInterval(id);
-  }, [date, load]);
-
   const goNext = () => navigate(`/fecha/${addDays(date, 1)}`);
   const goPrev = () => navigate(`/fecha/${addDays(date, -1)}`);
 
@@ -72,6 +52,10 @@ export default function DayFeedPage() {
     else if (delta >= SWIPE_THRESHOLD_PX) goPrev();
     touchStartX.current = null;
   };
+
+  const visibleMatches = activeLeague
+    ? matches.filter((m) => m.league === activeLeague)
+    : matches;
 
   return (
     <>
@@ -90,27 +74,30 @@ export default function DayFeedPage() {
         >
           <div className="day-heading">{labelForDate(date)}</div>
 
-          {status === "error" && (
+          {activeLeague && (
+            <div className="league-filter-chip">
+              <span>{activeLeague}</span>
+              <button onClick={onClearLeagueFilter} aria-label="Quitar filtro">
+                ✕
+              </button>
+            </div>
+          )}
+
+          {matchesStatus === "error" && (
             <div className="error-state">
               <p className="error-state-title">No pudimos cargar los partidos</p>
               <p className="error-state-subtitle">
                 Puede ser algo pasajero — probá de nuevo en un momento.
               </p>
-              <button
-                className="error-state-retry"
-                onClick={() => {
-                  setStatus("loading");
-                  load(date);
-                }}
-              >
+              <button className="error-state-retry" onClick={reloadMatches}>
                 Reintentar
               </button>
             </div>
           )}
-          {status === "loading" && <p className="empty">Cargando partidos…</p>}
-          {status === "ok" && (
+          {matchesStatus === "loading" && <p className="empty">Cargando partidos…</p>}
+          {matchesStatus === "ok" && (
             <MatchFeed
-              matches={matches}
+              matches={visibleMatches}
               onSelectTeam={(id) => navigate(`/equipo/${id}`)}
               onSelectMatch={(match) => navigate(`/partido/${match.id}`)}
               isLeagueFavorite={isLeagueFavorite}
