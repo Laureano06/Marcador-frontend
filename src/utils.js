@@ -55,44 +55,31 @@ export function labelForDate(dateKey) {
   return `${weekday} ${dayMonth}`.toUpperCase();
 }
 
-// Orden de prioridad para mostrar las ligas dentro de cada día. Las que no
-// aparecen acá se muestran al final, en el orden en que llegan de la API.
-// Los nombres tienen que coincidir EXACTO con lo que devuelve la API
-// (campo raw.league.name) — si agregás una liga nueva y no aparece en el
-// orden que esperás, revisá que el nombre esté bien escrito acá.
-export const LEAGUE_ORDER = [
-  "Liga Profesional Argentina",
-  "Copa Argentina",
-  "Copa Libertadores",
-  "Copa Sudamericana",
-  "Mundial",
+// Orden de prioridad para mostrar las ligas dentro de cada día:
+// 1) TODAS las competencias de Argentina (por país, no por nombre — así
+//    entra Liga Profesional, Copa Argentina, Primera Nacional, etc. sin
+//    tener que listarlas una por una).
+// 2) Las 5 grandes ligas europeas, en este orden: Inglaterra, Italia,
+//    Francia, España, Alemania.
+// 3) Las copas internacionales top: Libertadores y Champions League.
+// El resto se muestra después, en el orden en que llega de la API. Los
+// nombres tienen que coincidir EXACTO con lo que devuelve la API (campo
+// raw.league.name) — si una liga nueva no aparece en el orden esperado,
+// revisá que el nombre esté bien escrito acá.
+const LEAGUE_NAME_ORDER = [
+  "Premier League", // Inglaterra
+  "Serie A", // Italia
+  "Ligue 1", // Francia
+  "La Liga", // España
+  "Bundesliga", // Alemania
+  "CONMEBOL Libertadores",
   "UEFA Champions League",
-  "Premier League",
-  "La Liga",
-  "Serie A",
-  "Bundesliga",
-  "Ligue 1",
-  "Primeira Liga",
-  "Eredivisie",
-  "Brasileirão",
 ];
 
-function leagueRank(name) {
-  const i = LEAGUE_ORDER.indexOf(name);
-  return i === -1 ? LEAGUE_ORDER.length : i; // desconocidas, al final
-}
-
-// Agrupa una lista de partidos por día (clave "YYYY-MM-DD" tomada de
-// match.start), preservando el orden cronológico. Se usa en la página de
-// una liga puntual, donde los partidos no vienen ya filtrados por día.
-export function groupByDate(matches) {
-  const groups = {};
-  for (const m of matches) {
-    const key = toDateKey(new Date(m.start));
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(m);
-  }
-  return groups;
+function leagueRank(name, country) {
+  if (country === "Argentina") return 0;
+  const i = LEAGUE_NAME_ORDER.indexOf(name);
+  return i === -1 ? LEAGUE_NAME_ORDER.length + 1 : i + 1;
 }
 
 export function groupByLeague(matches) {
@@ -104,9 +91,12 @@ export function groupByLeague(matches) {
   }
 
   // Los objetos en JS mantienen el orden de inserción, así que basta con
-  // reconstruirlo ya ordenado según LEAGUE_ORDER.
+  // reconstruirlo ya ordenado por prioridad. El país de cada liga sale
+  // del primer partido del grupo (todos comparten liga -> mismo país).
   const sortedEntries = Object.entries(groups).sort(
-    (a, b) => leagueRank(a[0]) - leagueRank(b[0])
+    (a, b) =>
+      leagueRank(a[0], a[1][0]?.leagueCountry) -
+      leagueRank(b[0], b[1][0]?.leagueCountry)
   );
 
   return Object.fromEntries(sortedEntries);
