@@ -17,6 +17,12 @@ export default function Layout() {
 
   const [matches, setMatches] = useState([]);
   const [matchesStatus, setMatchesStatus] = useState("loading"); // loading | ok | error
+  // Si el backend no pudo pedirle nada nuevo a la API (cuota agotada,
+  // caída) pero tenía algo cacheado, igual manda esos datos con
+  // `stale: true` en vez de un error — así se lo hacemos saber al
+  // usuario en vez de mostrar resultados posiblemente viejos como si
+  // fueran al toque.
+  const [staleMatches, setStaleMatches] = useState(false);
 
   const favorites = useFavorites();
 
@@ -31,8 +37,9 @@ export default function Layout() {
 
   const load = useCallback(async (dateKey) => {
     try {
-      const { matches } = await fetchDay(dateKey);
+      const { matches, stale } = await fetchDay(dateKey);
       setMatches(matches);
+      setStaleMatches(!!stale);
       setMatchesStatus("ok");
     } catch (err) {
       console.error(err);
@@ -124,6 +131,7 @@ export default function Layout() {
           context={{
             matches,
             matchesStatus,
+            staleMatches,
             reloadMatches: () => load(feedDate),
             onlyFavorites,
             activeLeague,

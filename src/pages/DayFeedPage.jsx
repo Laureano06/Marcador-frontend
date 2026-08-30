@@ -11,6 +11,7 @@ export default function DayFeedPage() {
   const {
     matches,
     matchesStatus,
+    staleMatches,
     reloadMatches,
     onlyFavorites,
     activeLeague,
@@ -73,6 +74,13 @@ export default function DayFeedPage() {
           }
         >
           <div className="day-heading">{labelForDate(date)}</div>
+
+          {matchesStatus === "ok" && staleMatches && (
+            <div className="stale-banner">
+              Mostrando datos guardados — se alcanzó el límite diario de la
+              API. Puede que falten resultados recientes.
+            </div>
+          )}
 
           {activeLeague && (
             <div className="league-filter-chip">

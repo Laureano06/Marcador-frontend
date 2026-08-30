@@ -58,6 +58,12 @@ export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorit
         <p className="error-banner">No se pudo cargar este equipo.</p>
       )}
 
+      {status === "ok" && profile?.stale && (
+        <div className="stale-banner">
+          Mostrando datos guardados — se alcanzó el límite diario de la API.
+        </div>
+      )}
+
       {status === "ok" && profile && (
         <>
           <div

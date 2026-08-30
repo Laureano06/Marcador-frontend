@@ -75,6 +75,12 @@ export default function MatchDetail({ matchId, onBack }) {
         <p className="error-banner">No se pudo cargar este partido.</p>
       )}
 
+      {status === "ok" && detail?.stale && (
+        <div className="stale-banner">
+          Mostrando datos guardados — se alcanzó el límite diario de la API.
+        </div>
+      )}
+
       {status === "ok" && detail && (
         <>
           <div className="match-detail-header">
