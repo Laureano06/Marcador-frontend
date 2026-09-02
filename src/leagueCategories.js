@@ -278,6 +278,28 @@ export const CATEGORY_ORDER = [
   "Otros",
 ];
 
+const COUNTRY_STOPWORDS = new Set(["and", "de", "the", "of"]);
+
+// Abreviatura corta de país para el chip circular del sidebar — no son
+// banderas reales (ver DESIGN.md: nada de emoji/glifos haciendo de ícono,
+// y muchas banderas son visualmente casi idénticas entre sí, ej.
+// Chad/Rumania). Un chip circular con el mismo hash de color que ya usan
+// los escudos de respaldo evita ambas cosas: encaja con "círculo =
+// identidad" y nunca es ambiguo. "World" (competencias internacionales)
+// no tiene país real — se maneja aparte, ver LeagueSidebar.jsx.
+export function countryAbbr(country) {
+  if (!country) return "";
+  const words = country
+    .split(/[-\s]+/)
+    .filter((w) => w && !COUNTRY_STOPWORDS.has(w.toLowerCase()));
+  if (words.length === 1) return words[0].slice(0, 3).toUpperCase();
+  return words
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 3)
+    .toUpperCase();
+}
+
 export function categoryForLeague(leagueName, country) {
   if (nameMatches(leagueName, WOMEN_HINTS)) return "Femenino";
   if (nameMatches(leagueName, YOUTH_HINTS)) return "Juveniles";

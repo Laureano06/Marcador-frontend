@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchMatchDetail } from "../api";
 import { crestColor } from "../utils";
 import LineupPitch from "./LineupPitch";
+import { ChevronLeftIcon } from "./icons";
 
 function TeamHeader({ team, side }) {
   if (!team) return <div className={"match-detail-team " + side} />;
@@ -24,7 +25,7 @@ function TeamHeader({ team, side }) {
 function Predictions({ predictions, home, away }) {
   return (
     <div className="team-section">
-      <div className="team-section-title">Pronóstico</div>
+      <h2 className="team-section-title">Pronóstico</h2>
       <div className="prob">
         <div className="prob-bar">
           <div className="home" style={{ width: `${predictions.home}%` }} />
@@ -49,8 +50,9 @@ function Predictions({ predictions, home, away }) {
 export default function MatchDetail({ matchId, onBack }) {
   const [detail, setDetail] = useState(null);
   const [status, setStatus] = useState("loading"); // loading | ok | error
+  const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
+  const load = useCallback(() => {
     setStatus("loading");
     setDetail(null);
     fetchMatchDetail(matchId)
@@ -60,19 +62,30 @@ export default function MatchDetail({ matchId, onBack }) {
       })
       .catch((err) => {
         console.error(err);
+        setErrorMessage(err.message);
         setStatus("error");
       });
   }, [matchId]);
 
+  useEffect(() => {
+    load();
+  }, [load]);
+
   return (
     <div className="match-detail">
       <button className="back-btn" onClick={onBack}>
-        ‹ Volver
+        <ChevronLeftIcon />Volver
       </button>
 
       {status === "loading" && <p className="empty">Cargando partido…</p>}
       {status === "error" && (
-        <p className="error-banner">No se pudo cargar este partido.</p>
+        <div className="error-state">
+          <p className="error-state-title">No pudimos cargar este partido</p>
+          <p className="error-state-subtitle">{errorMessage}</p>
+          <button className="error-state-retry" onClick={load}>
+            Reintentar
+          </button>
+        </div>
       )}
 
       {status === "ok" && detail?.stale && (
@@ -83,6 +96,13 @@ export default function MatchDetail({ matchId, onBack }) {
 
       {status === "ok" && detail && (
         <>
+          {/* Visualmente los dos nombres de equipo alrededor del score ya
+              comunican esto — el h1 es solo para navegación por
+              encabezados de lectores de pantalla, esta pantalla no tenía
+              ninguno. */}
+          <h1 className="sr-only">
+            {detail.home?.name} vs {detail.away?.name}
+          </h1>
           <div className="match-detail-header">
             <TeamHeader team={detail.home} side="home" />
             <div className="match-detail-score">
@@ -113,7 +133,7 @@ export default function MatchDetail({ matchId, onBack }) {
 
           {detail.statistics && (
             <div className="team-section">
-              <div className="team-section-title">Estadísticas</div>
+              <h2 className="team-section-title">Estadísticas</h2>
               <div className="match-stats-list">
                 {detail.statistics.map((row, i) => (
                   <div key={i} className="match-stat-row">
@@ -128,11 +148,11 @@ export default function MatchDetail({ matchId, onBack }) {
 
           {detail.lineups && (
             <div className="team-section">
-              <div className="team-section-title">
+              <h2 className="team-section-title">
                 {detail.lineupsAreProbable
                   ? "Alineación probable"
                   : "Alineación"}
-              </div>
+              </h2>
               <LineupPitch home={detail.lineups.home} away={detail.lineups.away} />
             </div>
           )}

@@ -11,7 +11,11 @@
   --line: rgba(255, 255, 255, 0.1);
   --text: #ffffff; /* blanco exacto de la "P" del ícono */
   --text-dim: rgba(255, 255, 255, 0.6);
-  --text-dimmer: rgba(255, 255, 255, 0.32);
+  /* 0.5, no 0.32: a los tamaños chicos donde se usa (9-11px, badges,
+     labels, meta) 0.32 mide ~2.9:1 de contraste contra --bg, por debajo
+     del piso de 4.5:1 para texto. 0.5 mide ~4.6:1 y sigue leyéndose
+     claramente más apagado que --text-dim (0.6). */
+  --text-dimmer: rgba(255, 255, 255, 0.5);
   --accent: #2c69d2; /* mismo matiz del navy, más claro — para estados activos */
   --accent-text: #ffffff;
   --accent-dim: rgba(44, 105, 210, 0.2);
@@ -45,6 +49,56 @@ body {
   color: var(--text);
   font-family: var(--font-body);
   min-height: 100vh;
+}
+
+/* Fuera de pantalla hasta que se enfoca con teclado (primer Tab de la
+   página) — deja saltar directo al contenido sin recorrer sidebar, logo,
+   buscador y paginador de fecha en cada visita. */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 12px;
+  z-index: 100;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 8px;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* Visualmente oculto pero legible por lectores de pantalla — labels y
+   anuncios que no necesitan espacio en el layout visual. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+::selection {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+
+/* Foco visible propio en vez del azul default del navegador — solo con
+   teclado (:focus-visible), para no dejar un anillo permanente en cada
+   tap/click táctil o de mouse. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* ============================================================
@@ -229,7 +283,9 @@ body {
 }
 
 .league-sidebar-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
   text-align: left;
   font-family: var(--font-body);
@@ -243,6 +299,20 @@ body {
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease,
     box-shadow 0.15s ease;
+}
+
+.country-chip {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 7.5px;
+  color: #141416;
 }
 
 .league-sidebar-item:hover {
@@ -313,7 +383,7 @@ header {
 .logo-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
@@ -343,7 +413,14 @@ header {
   box-shadow: 0 0 12px rgba(44, 105, 210, 0.5);
 }
 
-.fav-filter {
+/* --- Control segmentado Todos/En vivo/Favoritos del feed del día --- */
+.feed-filter-group {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0 14px;
+}
+
+.feed-filter-btn {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
@@ -357,12 +434,12 @@ header {
   transition: all 0.15s ease;
 }
 
-.fav-filter:hover {
+.feed-filter-btn:hover {
   color: var(--text);
   border-color: var(--text-dimmer);
 }
 
-.fav-filter.active {
+.feed-filter-btn.active {
   color: var(--accent-text);
   background: var(--accent);
   border-color: var(--accent);
@@ -445,7 +522,8 @@ header {
   cursor: default;
 }
 
-.search-result:hover {
+.search-result:hover,
+.search-result.highlighted {
   background: var(--bg-card-hover);
 }
 
@@ -506,6 +584,9 @@ header {
 }
 
 .day-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   width: 40px; /* antes 30px — objetivo táctil más cómodo para una acción frecuente */
   height: 40px;
@@ -619,6 +700,13 @@ header {
   margin: 18px 0 4px;
 }
 
+/* Más presente que el resto del heading (--text-dimmer): es un dato, no
+   solo un rótulo, pero se mantiene neutro a propósito — nunca acento ni
+   live-red, para no fabricar urgencia. */
+.match-count {
+  color: var(--text-dim);
+}
+
 /* --- Chip de filtro activo (sidebar -> "solo esta liga") --- */
 .league-filter-chip {
   display: inline-flex;
@@ -634,6 +722,9 @@ header {
 }
 
 .league-filter-chip button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(255, 255, 255, 0.2);
   border: none;
   color: inherit;
@@ -782,7 +873,7 @@ header {
 
 .status-badge {
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 11px; /* antes 9.5px — por debajo del piso legible para texto funcional, y se repite en cada partido del feed */
   letter-spacing: 1px;
   padding: 2px 7px;
   border-radius: 20px;
@@ -876,6 +967,40 @@ header {
   margin-top: 24px;
 }
 
+/* Empty state de un filtro (En vivo / Favoritos) sin resultados — a
+   diferencia de .error-state, esto no es una falla, así que el botón de
+   salida es un pill ghost, no el CTA de acento. */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.empty-state .empty {
+  margin-top: 24px;
+}
+
+.empty-state-action {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 6px 12px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.empty-state-action:hover {
+  color: var(--text);
+  border-color: var(--text-dimmer);
+}
+
 .error-banner {
   color: var(--text);
   font-weight: 700;
@@ -884,7 +1009,8 @@ header {
 /* Aviso de que se están mostrando datos cacheados (se agotó la cuota
    diaria de la API, o se cayó la conexión) — mismo dato que ya calculaba
    el backend (`stale: true`), antes se descartaba en el frontend. */
-.stale-banner {
+.stale-banner,
+.offline-banner {
   font-family: var(--font-body);
   font-size: 12.5px;
   line-height: 1.4;
@@ -893,7 +1019,17 @@ header {
   border: 1px solid rgba(217, 164, 65, 0.35);
   border-radius: 8px;
   padding: 10px 14px;
+}
+
+.stale-banner {
   margin: 10px 0 4px;
+}
+
+/* A diferencia de .stale-banner (vive dentro de .feed-viewport, que ya
+   tiene padding horizontal de 18px), este banner cuelga directo de
+   .wrap y necesita su propio margen lateral. */
+.offline-banner {
+  margin: 10px 18px 4px;
 }
 
 /* Cartel de error amigable con botón de reintentar (feed del día) */
@@ -962,6 +1098,9 @@ footer {
 }
 
 .back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   margin: 16px 0;
   background: transparent;
   border: 1px solid var(--line);

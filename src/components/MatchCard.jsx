@@ -79,7 +79,20 @@ export default function MatchCard({
     <div
       className="match"
       onClick={() => onSelectMatch?.(match)}
+      onKeyDown={(e) => {
+        if (!onSelectMatch) return;
+        // Enter y Space activan la card igual que un <button> nativo —
+        // sin esto la card entera (el elemento interactivo más repetido
+        // de la app) era inalcanzable por teclado. No es un <button> real
+        // porque adentro hay botones anidados (crest, estrella), y HTML
+        // no permite <button> dentro de <button>.
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelectMatch(match);
+        }
+      }}
       role={onSelectMatch ? "button" : undefined}
+      tabIndex={onSelectMatch ? 0 : undefined}
       title={onSelectMatch ? "Ver detalle del partido" : undefined}
     >
       <div className="match-top">

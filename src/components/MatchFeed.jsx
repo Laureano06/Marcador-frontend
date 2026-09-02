@@ -2,6 +2,12 @@ import { groupByLeague } from "../utils";
 import MatchCard from "./MatchCard";
 import FavoriteButton from "./FavoriteButton";
 
+const EMPTY_COPY = {
+  todos: "No hay partidos cargados para este día.",
+  vivo: "No hay partidos en vivo ahora mismo.",
+  favoritos: "No tenés partidos de tus favoritos este día.",
+};
+
 export default function MatchFeed({
   matches,
   onSelectTeam,
@@ -10,30 +16,25 @@ export default function MatchFeed({
   onToggleLeague,
   isTeamFavorite,
   onToggleTeam,
-  onlyFavorites,
+  feedFilter,
+  onShowAll,
 }) {
-  // "Solo favoritos" muestra un partido si la LIGA es favorita, o si
-  // cualquiera de los dos EQUIPOS lo es — así cubre a alguien que solo
-  // sigue a un club puntual, no toda la competencia.
-  const visibleMatches = onlyFavorites
-    ? matches.filter(
-        (m) =>
-          isLeagueFavorite(m.league) ||
-          isTeamFavorite(m.homeId) ||
-          isTeamFavorite(m.awayId)
-      )
-    : matches;
-
-  const groups = groupByLeague(visibleMatches);
+  const groups = groupByLeague(matches);
   const leagues = Object.entries(groups);
 
   if (leagues.length === 0) {
     return (
-      <p className="empty">
-        {onlyFavorites
-          ? "No tenés partidos de tus favoritos este día."
-          : "No hay partidos cargados para este día."}
-      </p>
+      <div className="empty-state">
+        <p className="empty">{EMPTY_COPY[feedFilter] || EMPTY_COPY.todos}</p>
+        {/* Salida de un toque: un filtro vacío nunca deja al usuario en un
+            callejón sin salida — puede volver a "Todos" sin buscar el
+            control de filtro de nuevo. */}
+        {feedFilter !== "todos" && (
+          <button className="empty-state-action" onClick={onShowAll}>
+            Ver todos
+          </button>
+        )}
+      </div>
     );
   }
 

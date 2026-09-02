@@ -2,8 +2,21 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { addDays, labelForDate } from "../utils";
 import MatchFeed from "../components/MatchFeed";
+import { CloseIcon } from "../components/icons";
 
 const SWIPE_THRESHOLD_PX = 60;
+
+// Un solo control segmentado en vez de dos toggles independientes (antes:
+// "Favoritos" vivía solo en el header, separado de cualquier filtro de
+// liga) — mismo tipo de acción (filtrar la lista visible), un solo lugar
+// para pensarlo. "vivo" y "favoritos" son mutuamente excluyentes con
+// "todos", no acumulables entre sí — más simple de razonar que un feed
+// que combina ambos silenciosamente.
+const FEED_FILTERS = [
+  { key: "todos", label: "Todos" },
+  { key: "vivo", label: "En vivo" },
+  { key: "favoritos", label: "Favoritos" },
+];
 
 export default function DayFeedPage() {
   const { date } = useParams();
@@ -13,7 +26,6 @@ export default function DayFeedPage() {
     matchesStatus,
     staleMatches,
     reloadMatches,
-    onlyFavorites,
     activeLeague,
     onClearLeagueFilter,
     isTeamFavorite,
@@ -21,6 +33,8 @@ export default function DayFeedPage() {
     toggleTeam,
     toggleLeague,
   } = useOutletContext();
+
+  const [feedFilter, setFeedFilter] = useState("todos");
 
   // "left" | "right" | null — de qué lado entra la animación, detectado
   // comparando la fecha nueva con la anterior (funciona tanto con swipe
@@ -54,9 +68,32 @@ export default function DayFeedPage() {
     touchStartX.current = null;
   };
 
-  const visibleMatches = activeLeague
+  const leagueFiltered = activeLeague
     ? matches.filter((m) => m.league === activeLeague)
     : matches;
+
+  const visibleMatches =
+    feedFilter === "vivo"
+      ? leagueFiltered.filter((m) => m.status === "live")
+      : feedFilter === "favoritos"
+      ? leagueFiltered.filter(
+          (m) =>
+            isLeagueFavorite(m.league) ||
+            isTeamFavorite(m.homeId) ||
+            isTeamFavorite(m.awayId)
+        )
+      : leagueFiltered;
+
+  // El badge de cantidad describe SIEMPRE lo que hay debajo, nunca el
+  // total sin filtrar — un número que no se mueve con el filtro activo es
+  // tan engañoso como un contador de "urgencia" inventado, aunque no haya
+  // intención de engañar a nadie.
+  const countLabel =
+    feedFilter === "vivo"
+      ? `${visibleMatches.length} en vivo`
+      : feedFilter === "favoritos"
+      ? `${visibleMatches.length} de tus favoritos`
+      : `${visibleMatches.length} partido${visibleMatches.length === 1 ? "" : "s"}`;
 
   return (
     <>
@@ -73,7 +110,32 @@ export default function DayFeedPage() {
             (slideDir === "right" ? " from-left" : "")
           }
         >
-          <div className="day-heading">{labelForDate(date)}</div>
+          <h1 className="day-heading">
+            {labelForDate(date)}
+            {matchesStatus === "ok" && (
+              <span className="match-count"> · {countLabel}</span>
+            )}
+          </h1>
+
+          <div
+            className="feed-filter-group"
+            role="radiogroup"
+            aria-label="Filtrar partidos"
+          >
+            {FEED_FILTERS.map((f) => (
+              <button
+                key={f.key}
+                role="radio"
+                aria-checked={feedFilter === f.key}
+                className={
+                  "feed-filter-btn" + (feedFilter === f.key ? " active" : "")
+                }
+                onClick={() => setFeedFilter(f.key)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
 
           {matchesStatus === "ok" && staleMatches && (
             <div className="stale-banner">
@@ -86,7 +148,7 @@ export default function DayFeedPage() {
             <div className="league-filter-chip">
               <span>{activeLeague}</span>
               <button onClick={onClearLeagueFilter} aria-label="Quitar filtro">
-                ✕
+                <CloseIcon />
               </button>
             </div>
           )}
@@ -112,7 +174,8 @@ export default function DayFeedPage() {
               onToggleLeague={toggleLeague}
               isTeamFavorite={isTeamFavorite}
               onToggleTeam={toggleTeam}
-              onlyFavorites={onlyFavorites}
+              feedFilter={feedFilter}
+              onShowAll={() => setFeedFilter("todos")}
             />
           )}
         </div>

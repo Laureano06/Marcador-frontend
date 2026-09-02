@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate, useMatch } from "react-router-dom";
 import { fetchDay } from "./api";
 import { toDateKey, addDays } from "./utils";
@@ -6,14 +6,24 @@ import { useFavorites } from "./useFavorites";
 import LeagueSidebar from "./components/LeagueSidebar";
 import SearchBar from "./components/SearchBar";
 import DateStrip from "./components/DateStrip";
+import { HamburgerIcon, ChevronLeftIcon, ChevronRightIcon } from "./components/icons";
 
 const POLL_MS = 60000;
 
 export default function Layout() {
   const navigate = useNavigate();
-  const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeLeague, setActiveLeague] = useState(null);
+  // Datos cacheados por el service worker (network-first) mientras el
+  // dispositivo está offline se veían igual que datos frescos — nada
+  // distinguía "sin conexión, mostrando cache" de "conectado, en vivo".
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator === "undefined" ? true : navigator.onLine
+  );
+  // Anuncio para lectores de pantalla en cada actualización del feed —
+  // un solo resumen por refresh (no uno por partido/score cambiado, eso
+  // sería su propio problema de "over-announcing").
+  const [liveAnnouncement, setLiveAnnouncement] = useState("");
 
   const [matches, setMatches] = useState([]);
   const [matchesStatus, setMatchesStatus] = useState("loading"); // loading | ok | error
@@ -35,12 +45,22 @@ export default function Layout() {
   const activeDate = dayMatch?.params.date;
   const feedDate = activeDate || toDateKey(new Date());
 
-  const load = useCallback(async (dateKey) => {
+  // No anunciamos la primera carga de cada fecha (es solo "la pantalla
+  // apareció", no una actualización) — solo los refreshes del polling
+  // sobre la MISMA fecha ya visible.
+  const hasLoadedOnce = useRef(false);
+
+  const load = useCallback(async (dateKey, { isRefresh = false } = {}) => {
     try {
       const { matches, stale } = await fetchDay(dateKey);
       setMatches(matches);
       setStaleMatches(!!stale);
       setMatchesStatus("ok");
+      if (isRefresh) {
+        setLiveAnnouncement(
+          `Partidos actualizados${stale ? " (datos guardados)" : ""}.`
+        );
+      }
     } catch (err) {
       console.error(err);
       setMatchesStatus("error");
@@ -50,19 +70,43 @@ export default function Layout() {
   useEffect(() => {
     setMatchesStatus("loading");
     setActiveLeague(null); // cambiar de día invalida el filtro de liga anterior
-    load(feedDate);
+    hasLoadedOnce.current = false;
+    load(feedDate).then(() => {
+      hasLoadedOnce.current = true;
+    });
   }, [feedDate, load]);
 
   useEffect(() => {
-    const id = setInterval(() => load(feedDate), POLL_MS);
+    const id = setInterval(
+      () => load(feedDate, { isRefresh: hasLoadedOnce.current }),
+      POLL_MS
+    );
     return () => clearInterval(id);
   }, [feedDate, load]);
+
+  // Sin esto, un dispositivo sin conexión mostraba el mismo cache que uno
+  // conectado viendo datos en vivo — no había ninguna señal de que lo que
+  // se ve podría estar desactualizado por estar offline, no por cuota.
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, []);
 
   const goHome = () => navigate(`/fecha/${toDateKey(new Date())}`);
   const openTeam = (id) => navigate(`/equipo/${id}`);
 
   return (
     <div className="app-shell">
+      <a href="#main-content" className="skip-link">
+        Saltar al contenido
+      </a>
+
       {/* El backdrop solo se ve (y solo existe en el DOM con la clase
           "visible") en mobile, cuando el cajón de ligas está abierto. */}
       <div
@@ -72,6 +116,7 @@ export default function Layout() {
 
       <LeagueSidebar
         matches={matches}
+        matchesStatus={matchesStatus}
         activeLeague={activeLeague}
         onSelect={setActiveLeague}
         open={sidebarOpen}
@@ -86,18 +131,11 @@ export default function Layout() {
               onClick={() => setSidebarOpen(true)}
               aria-label="Abrir ligas"
             >
-              ☰
+              <HamburgerIcon />
             </button>
             <button className="logo logo-btn" onClick={goHome}>
               <img className="logo-icon" src="/iconoPARTIDOS.png" alt="" />
               PARTIDOS
-            </button>
-            <button
-              className={"fav-filter" + (onlyFavorites ? " active" : "")}
-              onClick={() => setOnlyFavorites((v) => !v)}
-              title="Mostrar solo mis favoritos"
-            >
-              ★ Favoritos
             </button>
           </div>
 
@@ -110,7 +148,7 @@ export default function Layout() {
                 onClick={() => navigate(`/fecha/${addDays(activeDate, -1)}`)}
                 aria-label="Día anterior"
               >
-                ‹
+                <ChevronLeftIcon />
               </button>
               <DateStrip
                 activeDate={activeDate}
@@ -121,24 +159,38 @@ export default function Layout() {
                 onClick={() => navigate(`/fecha/${addDays(activeDate, 1)}`)}
                 aria-label="Día siguiente"
               >
-                ›
+                <ChevronRightIcon />
               </button>
             </div>
           )}
         </header>
 
-        <Outlet
-          context={{
-            matches,
-            matchesStatus,
-            staleMatches,
-            reloadMatches: () => load(feedDate),
-            onlyFavorites,
-            activeLeague,
-            onClearLeagueFilter: () => setActiveLeague(null),
-            ...favorites,
-          }}
-        />
+        {!isOnline && (
+          <div className="offline-banner" role="status">
+            Sin conexión — mostrando lo último guardado en el dispositivo.
+          </div>
+        )}
+
+        {/* Anuncio no visual de cada refresh del feed — un resumen por
+            actualización, no uno por partido, para no saturar de avisos
+            a quien usa lector de pantalla. */}
+        <span className="sr-only" role="status" aria-live="polite">
+          {liveAnnouncement}
+        </span>
+
+        <main id="main-content">
+          <Outlet
+            context={{
+              matches,
+              matchesStatus,
+              staleMatches,
+              reloadMatches: () => load(feedDate),
+              activeLeague,
+              onClearLeagueFilter: () => setActiveLeague(null),
+              ...favorites,
+            }}
+          />
+        </main>
       </div>
     </div>
   );

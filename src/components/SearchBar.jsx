@@ -9,8 +9,12 @@ export default function SearchBar({ onSelectTeam }) {
   const [results, setResults] = useState(null); // { teams, leagues } | null
   const [status, setStatus] = useState("idle"); // idle | loading | ok | error
   const [open, setOpen] = useState(false);
+  // -1 = nada resaltado. Solo los equipos son seleccionables (las ligas
+  // son texto estático), así que el índice recorre results.teams.
+  const [highlighted, setHighlighted] = useState(-1);
   const debounceRef = useRef(null);
   const boxRef = useRef(null);
+  const listboxId = "search-listbox";
 
   const runSearch = useCallback(async (q) => {
     setStatus("loading");
@@ -23,6 +27,7 @@ export default function SearchBar({ onSelectTeam }) {
       }
       setResults(data);
       setStatus("ok");
+      setHighlighted(-1);
     } catch (err) {
       console.error(err);
       setStatus("error");
@@ -33,6 +38,7 @@ export default function SearchBar({ onSelectTeam }) {
     const value = e.target.value;
     setQuery(value);
     setOpen(true);
+    setHighlighted(-1);
     clearTimeout(debounceRef.current);
 
     if (value.trim().length < 3) {
@@ -60,24 +66,85 @@ export default function SearchBar({ onSelectTeam }) {
     setOpen(false);
     setQuery("");
     setResults(null);
+    setHighlighted(-1);
+  };
+
+  const teams = results?.teams || [];
+
+  // Navegación por teclado: flechas mueven el resaltado entre equipos
+  // (las ligas son texto estático, no se navegan), Enter selecciona,
+  // Escape cierra. Sin esto, un usuario de lector de pantalla no tenía
+  // forma de recorrer los resultados más que Tab secuencial, y no había
+  // ninguna señal de que algo hubiera aparecido al escribir.
+  const handleKeyDown = (e) => {
+    if (!open || teams.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlighted((i) => (i + 1) % teams.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlighted((i) => (i <= 0 ? teams.length - 1 : i - 1));
+    } else if (e.key === "Enter" && highlighted >= 0) {
+      e.preventDefault();
+      handleSelectTeam(teams[highlighted]);
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    }
   };
 
   const hasResults =
     results && (results.teams.length > 0 || results.leagues.length > 0);
 
+  // Antes el dropdown no aparecía en absoluto por debajo de 3 caracteres
+  // — para alguien tipeando lento, eso lee como que la búsqueda está
+  // rota, no como "todavía no llegaste al mínimo".
+  const isShort = query.trim().length > 0 && query.trim().length < 3;
+  const isOpen = open && (isShort || query.trim().length >= 3);
+
   return (
     <div className="search-box" ref={boxRef}>
+      <label htmlFor="search-input" className="sr-only">
+        Buscar equipo o liga
+      </label>
       <input
+        id="search-input"
         className="search-input"
         type="text"
         placeholder="Buscar equipo o liga…"
         value={query}
         onChange={handleChange}
         onFocus={() => setOpen(true)}
+        onKeyDown={handleKeyDown}
+        role="combobox"
+        aria-expanded={isOpen}
+        aria-controls={listboxId}
+        aria-autocomplete="list"
+        aria-activedescendant={
+          highlighted >= 0 ? `search-option-${highlighted}` : undefined
+        }
+        autoComplete="off"
       />
 
-      {open && query.trim().length >= 3 && (
-        <div className="search-dropdown">
+      {/* Región viva, oculta visualmente: anuncia a lectores de pantalla
+          lo que el dropdown ya muestra visualmente (cantidad, error,
+          "buscando…") — sin esto no había ninguna señal no-visual de que
+          algo pasó al escribir. */}
+      <span className="sr-only" role="status" aria-live="polite">
+        {status === "loading" && "Buscando…"}
+        {status === "error" && "No se pudo buscar."}
+        {status === "ok" &&
+          (hasResults
+            ? `${teams.length} equipo${teams.length === 1 ? "" : "s"}, ${
+                results.leagues.length
+              } liga${results.leagues.length === 1 ? "" : "s"} encontrados`
+            : `Sin resultados para ${query}`)}
+      </span>
+
+      {isOpen && (
+        <div className="search-dropdown" id={listboxId} role="listbox">
+          {isShort && (
+            <div className="search-msg">Seguí escribiendo…</div>
+          )}
           {status === "loading" && (
             <div className="search-msg">Buscando…</div>
           )}
@@ -88,14 +155,20 @@ export default function SearchBar({ onSelectTeam }) {
             <div className="search-msg">Sin resultados para "{query}"</div>
           )}
 
-          {status === "ok" && results.teams.length > 0 && (
+          {status === "ok" && teams.length > 0 && (
             <div className="search-group">
               <div className="search-group-label">Equipos</div>
-              {results.teams.map((team) => (
+              {teams.map((team, i) => (
                 <button
                   key={team.id}
-                  className="search-result"
+                  id={`search-option-${i}`}
+                  role="option"
+                  aria-selected={highlighted === i}
+                  className={
+                    "search-result" + (highlighted === i ? " highlighted" : "")
+                  }
                   onClick={() => handleSelectTeam(team)}
+                  onMouseEnter={() => setHighlighted(i)}
                 >
                   {team.crest && <img src={team.crest} alt="" />}
                   <span>{team.name}</span>

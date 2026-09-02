@@ -1,3 +1,5 @@
+import { StarIcon } from "./icons";
+
 export default function FavoriteButton({ active, onClick, size = "md" }) {
   return (
     <button
@@ -9,7 +11,7 @@ export default function FavoriteButton({ active, onClick, size = "md" }) {
       aria-label={active ? "Quitar de favoritos" : "Agregar a favoritos"}
       title={active ? "Quitar de favoritos" : "Agregar a favoritos"}
     >
-      {active ? "★" : "☆"}
+      <StarIcon active={active} />
     </button>
   );
 }

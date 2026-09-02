@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchTeamProfile } from "../api";
 import { crestColor } from "../utils";
 import FavoriteButton from "./FavoriteButton";
+import { ChevronLeftIcon } from "./icons";
 
 const POSITION_ORDER = ["Goalkeepers", "Defenders", "Midfielders", "Forwards"];
 const POSITION_LABEL = {
@@ -26,8 +27,9 @@ function groupSquadByPosition(squad) {
 export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorite }) {
   const [profile, setProfile] = useState(null);
   const [status, setStatus] = useState("loading"); // loading | ok | error
+  const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
+  const load = useCallback(() => {
     setStatus("loading");
     setProfile(null);
     fetchTeamProfile(teamId)
@@ -37,9 +39,14 @@ export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorit
       })
       .catch((err) => {
         console.error(err);
+        setErrorMessage(err.message);
         setStatus("error");
       });
   }, [teamId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   // "Impronta" del club: no todos tienen colores de marca cargados en la
   // API, así que usamos el mismo hash de color que ya se usa como
@@ -50,12 +57,18 @@ export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorit
   return (
     <div className="team-detail">
       <button className="back-btn" onClick={onBack}>
-        ‹ Volver
+        <ChevronLeftIcon />Volver
       </button>
 
       {status === "loading" && <p className="empty">Cargando equipo…</p>}
       {status === "error" && (
-        <p className="error-banner">No se pudo cargar este equipo.</p>
+        <div className="error-state">
+          <p className="error-state-title">No pudimos cargar este equipo</p>
+          <p className="error-state-subtitle">{errorMessage}</p>
+          <button className="error-state-retry" onClick={load}>
+            Reintentar
+          </button>
+        </div>
       )}
 
       {status === "ok" && profile?.stale && (
@@ -104,7 +117,7 @@ export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorit
 
           {profile.squad.length > 0 && (
             <div className="team-section">
-              <div className="team-section-title">Plantel</div>
+              <h2 className="team-section-title">Plantel</h2>
               {groupSquadByPosition(profile.squad).map(([position, players]) => (
                 <div key={position}>
                   <div className="squad-position-label">
