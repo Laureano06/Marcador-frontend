@@ -3,10 +3,12 @@ import { Outlet, useNavigate, useMatch } from "react-router-dom";
 import { fetchDay } from "./api";
 import { toDateKey, addDays } from "./utils";
 import { useFavorites } from "./useFavorites";
+import { useInstallPrompt } from "./useInstallPrompt";
 import LeagueSidebar from "./components/LeagueSidebar";
 import SearchBar from "./components/SearchBar";
 import DateStrip from "./components/DateStrip";
-import { HamburgerIcon, ChevronLeftIcon, ChevronRightIcon } from "./components/icons";
+import { ManagerPromoBanner } from "./components/ManagerPromo";
+import { HamburgerIcon, ChevronLeftIcon, ChevronRightIcon, DownloadIcon } from "./components/icons";
 
 const POLL_MS = 60000;
 
@@ -35,6 +37,7 @@ export default function Layout() {
   const [staleMatches, setStaleMatches] = useState(false);
 
   const favorites = useFavorites();
+  const { canInstall, promptInstall } = useInstallPrompt();
 
   // Solo en la ruta del feed por día mostramos el paginador de fechas —
   // en cualquier otra ruta (equipo, partido) no tiene sentido. El sidebar
@@ -121,6 +124,8 @@ export default function Layout() {
         onSelect={setActiveLeague}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        favorites={favorites.favorites}
+        onSelectTeam={openTeam}
       />
 
       <div className="wrap">
@@ -137,6 +142,12 @@ export default function Layout() {
               <img className="logo-icon" src="/iconoPARTIDOS.png" alt="" />
               PARTIDOS
             </button>
+
+            {canInstall && (
+              <button className="install-btn" onClick={promptInstall} aria-label="Instalar app">
+                <DownloadIcon /> <span aria-hidden="true">Instalar app</span>
+              </button>
+            )}
           </div>
 
           <SearchBar onSelectTeam={openTeam} />
@@ -164,6 +175,10 @@ export default function Layout() {
             </div>
           )}
         </header>
+
+        <div className="promo-banner-slot">
+          <ManagerPromoBanner />
+        </div>
 
         {!isOnline && (
           <div className="offline-banner" role="status">

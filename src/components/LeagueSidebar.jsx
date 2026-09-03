@@ -2,9 +2,54 @@ import { useEffect, useRef, useState } from "react";
 import { groupLeaguesByCategory, countryAbbr } from "../leagueCategories";
 import { crestColor } from "../utils";
 import { CloseIcon, ChevronDownIcon } from "./icons";
+import { ManagerPromoCard } from "./ManagerPromo";
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
+
+// El feed del día solo trae los partidos de HOY — un equipo favorito que
+// hoy no juega no tiene nombre/escudo para mostrar acá (la API no nos da
+// un "buscar equipo por id" fuera del feed). Mostrar solo lo que hoy
+// aparece es la lectura honesta: nunca "N favoritos" con menos filas
+// abajo, y nunca un id pelado en vez de un nombre.
+function favoriteTeamsFromMatches(matches, teamIds) {
+  if (teamIds.length === 0) return [];
+  const found = new Map();
+  for (const m of matches) {
+    if (teamIds.includes(m.homeId) && !found.has(m.homeId)) {
+      found.set(m.homeId, { id: m.homeId, name: m.home, ab: m.homeAb, crest: m.homeCrest });
+    }
+    if (teamIds.includes(m.awayId) && !found.has(m.awayId)) {
+      found.set(m.awayId, { id: m.awayId, name: m.away, ab: m.awayAb, crest: m.awayCrest });
+    }
+  }
+  return teamIds.map((id) => found.get(id)).filter(Boolean);
+}
+
+function FavoriteTeamRow({ team, onSelectTeam, onClose }) {
+  return (
+    <li>
+      <button
+        className="league-sidebar-item favorite-row"
+        onClick={() => {
+          onSelectTeam(team.id);
+          onClose?.();
+        }}
+      >
+        {team.crest ? (
+          <span className="favorite-crest favorite-crest-img">
+            <img src={team.crest} alt="" loading="lazy" />
+          </span>
+        ) : (
+          <span className="favorite-crest" style={{ background: crestColor(team.ab) }}>
+            {team.ab}
+          </span>
+        )}
+        {team.name}
+      </button>
+    </li>
+  );
+}
 
 export default function LeagueSidebar({
   matches,
@@ -13,6 +58,8 @@ export default function LeagueSidebar({
   onSelect,
   open,
   onClose,
+  favorites,
+  onSelectTeam,
 }) {
   const navRef = useRef(null);
 
@@ -73,6 +120,10 @@ export default function LeagueSidebar({
 
   const groups = groupLeaguesByCategory(matches);
 
+  const favoriteLeagues = favorites?.leagues ?? [];
+  const favoriteTeams = favoriteTeamsFromMatches(matches, favorites?.teams ?? []);
+  const hasFavorites = favoriteLeagues.length > 0 || favoriteTeams.length > 0;
+
   // Clickear la liga ya activa la desactiva (vuelve a mostrar todo).
   const handleSelect = (leagueName) => {
     onSelect(leagueName === activeLeague ? null : leagueName);
@@ -87,6 +138,38 @@ export default function LeagueSidebar({
           <CloseIcon />
         </button>
       </div>
+
+      <div className="sidebar-favorites">
+        <span className="region-header-static">Favoritos</span>
+        {hasFavorites ? (
+          <ul>
+            {favoriteLeagues.map((name) => (
+              <li key={name}>
+                <button
+                  className={"league-sidebar-item" + (name === activeLeague ? " active" : "")}
+                  onClick={() => handleSelect(name)}
+                >
+                  {name}
+                </button>
+              </li>
+            ))}
+            {favoriteTeams.map((team) => (
+              <FavoriteTeamRow
+                key={team.id}
+                team={team}
+                onSelectTeam={onSelectTeam}
+                onClose={onClose}
+              />
+            ))}
+          </ul>
+        ) : (
+          <p className="sidebar-favorites-empty">
+            Marcá equipos y ligas con la estrella para verlos acá.
+          </p>
+        )}
+      </div>
+
+      <ManagerPromoCard />
 
       {groups.length === 0 && matchesStatus === "loading" && (
         <p className="empty" style={{ padding: "0 16px" }}>

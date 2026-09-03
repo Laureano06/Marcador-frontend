@@ -60,6 +60,16 @@ export function ChevronRightIcon(props) {
   );
 }
 
+export function DownloadIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 3v12" />
+      <polyline points="7 10 12 15 17 10" />
+      <path d="M4 19h16" />
+    </svg>
+  );
+}
+
 export function StarIcon({ active, ...props }) {
   return (
     <svg
