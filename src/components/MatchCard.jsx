@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { crestColor, formatTime } from "../utils";
+import { crestColor, formatTime, liveMinuteLabel } from "../utils";
 import FavoriteButton from "./FavoriteButton";
 
 // Muestra el escudo real (fondo blanco) si la API nos dio una URL. Si no
@@ -28,11 +28,15 @@ function Crest({ abbr, crestUrl }) {
   );
 }
 
-function StatusBadge({ status, start }) {
+function StatusBadge({ status, start, elapsed, statusShort }) {
   if (status === "live") {
+    // El minuto reemplaza el texto "EN VIVO" (el punto pulsando ya
+    // comunica "en vivo") en vez de sumarse al lado — mismo badge, un
+    // dato más, sin agregar un segundo elemento a la card.
+    const minute = liveMinuteLabel(elapsed, statusShort);
     return (
       <span className="status-badge live">
-        <span className="blip" /> EN VIVO
+        <span className="blip" /> {minute || "EN VIVO"}
       </span>
     );
   }
@@ -111,7 +115,12 @@ export default function MatchCard({
           <div className="score">
             {hasScore ? `${match.scoreHome} - ${match.scoreAway}` : "VS"}
           </div>
-          <StatusBadge status={match.status} start={match.start} />
+          <StatusBadge
+            status={match.status}
+            start={match.start}
+            elapsed={match.elapsed}
+            statusShort={match.statusShort}
+          />
         </div>
 
         <TeamSide

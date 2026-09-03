@@ -45,7 +45,16 @@ export default function LeagueSidebar({
     }
 
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      // Sin esto, al cerrar (Escape, botón X, o click en el backdrop) el
+      // foco se quedaba en el botón de cerrar, ahora oculto fuera de
+      // pantalla por el transform del drawer — el siguiente Tab saltaba
+      // a cualquier lado en vez de volver al hamburger que lo abrió.
+      // Confirmado el bug probando el drawer de verdad, no solo leyendo
+      // el CSS: no era visible desde el código.
+      document.querySelector(".hamburger-btn")?.focus();
+    };
   }, [open, onClose]);
 
   // Qué categorías están COLAPSADAS (no las que están abiertas) — así

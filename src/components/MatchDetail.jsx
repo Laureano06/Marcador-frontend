@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { fetchMatchDetail } from "../api";
-import { crestColor } from "../utils";
+import { crestColor, liveMinuteLabel } from "../utils";
 import LineupPitch from "./LineupPitch";
 import { ChevronLeftIcon } from "./icons";
 import { useDocumentMeta } from "../useDocumentMeta";
@@ -133,7 +133,8 @@ export default function MatchDetail({ matchId, onBack }) {
               )}
               {detail.status === "live" && (
                 <div className="status-badge live" style={{ marginTop: 6 }}>
-                  <span className="blip" /> EN VIVO
+                  <span className="blip" />{" "}
+                  {liveMinuteLabel(detail.elapsed, detail.statusShort) || "EN VIVO"}
                 </div>
               )}
               {detail.status === "final" && (

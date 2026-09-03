@@ -1,5 +1,17 @@
 import { categoryForLeague } from "./leagueCategories";
 
+// Minuto/fase de un partido en vivo, para el status badge — "45'" en
+// juego, "DESC" en el entretiempo (la API no avanza `elapsed` durante el
+// descanso, así que mostrar el número ahí sería engañoso), "PENALES" en
+// la definición. null cuando no hay nada mejor que mostrar que "EN VIVO"
+// solo (partido recién arrancando, dato todavía no disponible).
+export function liveMinuteLabel(elapsed, statusShort) {
+  if (statusShort === "HT" || statusShort === "BT") return "DESC";
+  if (statusShort === "P") return "PENALES";
+  if (elapsed != null) return `${elapsed}'`;
+  return null;
+}
+
 export function crestColor(abbr) {
   let hash = 0;
   for (let i = 0; i < abbr.length; i++) {
