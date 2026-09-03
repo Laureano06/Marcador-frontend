@@ -18,14 +18,57 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta
       name="description"
+      content="Resultados de fútbol en vivo de todas las ligas del mundo, minuto a minuto. Sin ads, sin cuentas, sin vueltas."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://www.partidos.com.ar/" />
+    <title>PARTIDOS — Resultados de fútbol en vivo</title>
+
+    <!-- Open Graph / Twitter Card: lo que se ve al compartir un link en
+         WhatsApp, Twitter, etc. Estos SÍ tienen que ser estáticos acá (no
+         los puede actualizar el JS de la SPA por ruta) — los bots que
+         arman esas previews no ejecutan React, solo leen este HTML. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="PARTIDOS" />
+    <meta property="og:title" content="PARTIDOS — Resultados de fútbol en vivo" />
+    <meta
+      property="og:description"
+      content="Resultados de fútbol en vivo de todas las ligas del mundo, minuto a minuto. Sin ads, sin cuentas, sin vueltas."
+    />
+    <meta property="og:url" content="https://www.partidos.com.ar/" />
+    <meta property="og:image" content="https://www.partidos.com.ar/icon-512.png" />
+    <meta property="og:locale" content="es_AR" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="PARTIDOS — Resultados de fútbol en vivo" />
+    <meta
+      name="twitter:description"
       content="Resultados de fútbol en vivo de todas las ligas del mundo, minuto a minuto."
     />
-    <title>PARTIDOS</title>
+    <meta name="twitter:image" content="https://www.partidos.com.ar/icon-512.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Structured data genérico del sitio — no hay nada dinámico que
+         describir acá (sin precios, sin reviews, sin autor de contenido
+         editorial), así que WebApplication es el schema honesto: esto es
+         una herramienta, no un artículo ni un producto con reviews. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "PARTIDOS",
+        "url": "https://www.partidos.com.ar/",
+        "description": "Resultados de fútbol en vivo de todas las ligas del mundo, minuto a minuto.",
+        "applicationCategory": "SportsApplication",
+        "operatingSystem": "Any",
+        "inLanguage": "es-AR",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "ARS" }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -3,6 +3,17 @@ import { fetchMatchDetail } from "../api";
 import { crestColor } from "../utils";
 import LineupPitch from "./LineupPitch";
 import { ChevronLeftIcon } from "./icons";
+import { useDocumentMeta } from "../useDocumentMeta";
+
+function matchTitle(detail) {
+  if (!detail) return "PARTIDOS";
+  const { home, away, status } = detail;
+  const names = `${home?.name ?? "?"} vs ${away?.name ?? "?"}`;
+  if (status === "scheduled") return `${names} | PARTIDOS`;
+  const score = `${home?.score ?? "-"}-${away?.score ?? "-"}`;
+  const label = status === "live" ? "En vivo" : "Final";
+  return `${home?.name} ${score} ${away?.name} — ${label} | PARTIDOS`;
+}
 
 function TeamHeader({ team, side }) {
   if (!team) return <div className={"match-detail-team " + side} />;
@@ -70,6 +81,13 @@ export default function MatchDetail({ matchId, onBack }) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useDocumentMeta({
+    title: matchTitle(detail),
+    description: detail
+      ? `${detail.home?.name} vs ${detail.away?.name}: resultado, estadísticas y alineación en PARTIDOS.`
+      : undefined,
+  });
 
   return (
     <div className="match-detail">

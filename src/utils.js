@@ -1,3 +1,5 @@
+import { categoryForLeague } from "./leagueCategories";
+
 export function crestColor(abbr) {
   let hash = 0;
   for (let i = 0; i < abbr.length; i++) {
@@ -76,7 +78,25 @@ const LEAGUE_NAME_ORDER = [
   "UEFA Champions League",
 ];
 
+// Reserva/juveniles y femenino van SIEMPRE al final del feed del día,
+// nunca mezclados en el bloque genérico de "el resto" — antes ese bloque
+// se mostraba en el orden crudo de la API, que no tiene ninguna relación
+// con relevancia, y una liga de reserva (ej. "Reserve League") podía
+// terminar apareciendo primero en el día, antes que ligas de primera de
+// cualquier país. Reusa la misma detección por nombre que ya usa el
+// sidebar (leagueCategories.js) — una sola fuente de verdad para "esto es
+// una reserva/juvenil/femenino", no una lista separada para mantener acá.
+const LOW_PRIORITY_CATEGORIES = new Set(["Juveniles", "Femenino"]);
+const LOW_PRIORITY_RANK = 1000;
+
 function leagueRank(name, country) {
+  // Esta regla va PRIMERO a propósito: "Reserve League" de Argentina es
+  // Argentina Y reserva a la vez — si el chequeo de país fuera primero,
+  // el país siempre ganaba y la liga de reserva terminaba arriba de
+  // todo. Reserva/juveniles/femenino van al final sin importar el país.
+  if (LOW_PRIORITY_CATEGORIES.has(categoryForLeague(name, country))) {
+    return LOW_PRIORITY_RANK;
+  }
   if (country === "Argentina") return 0;
   const i = LEAGUE_NAME_ORDER.indexOf(name);
   return i === -1 ? LEAGUE_NAME_ORDER.length + 1 : i + 1;

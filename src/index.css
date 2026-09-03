@@ -749,6 +749,15 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
+}
+
+/* Nombres de liga largos ("DIVISION PROFESIONAL - CLAUSURA") envuelven a
+   dos líneas en vez de angostar la estrella o desbordar — line-height
+   propio para que esas dos líneas en mayúscula tracked no queden
+   pegadas entre sí. */
+.league-bar span {
+  line-height: 1.35;
 }
 
 .match {

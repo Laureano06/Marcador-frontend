@@ -3,6 +3,7 @@ import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { addDays, labelForDate } from "../utils";
 import MatchFeed from "../components/MatchFeed";
 import { CloseIcon } from "../components/icons";
+import { useDocumentMeta } from "../useDocumentMeta";
 
 const SWIPE_THRESHOLD_PX = 60;
 
@@ -35,6 +36,16 @@ export default function DayFeedPage() {
   } = useOutletContext();
 
   const [feedFilter, setFeedFilter] = useState("todos");
+
+  useDocumentMeta({
+    title: `PARTIDOS — ${labelForDate(date)}`,
+    description:
+      matchesStatus === "ok"
+        ? `${matches.length} partido${matches.length === 1 ? "" : "s"} de fútbol en vivo y resultados para ${labelForDate(
+            date
+          ).toLowerCase()}, de todas las ligas del mundo.`
+        : "Resultados de fútbol en vivo de todas las ligas del mundo, minuto a minuto.",
+  });
 
   // "left" | "right" | null — de qué lado entra la animación, detectado
   // comparando la fecha nueva con la anterior (funciona tanto con swipe

@@ -73,9 +73,18 @@ function Pitch({ side }) {
     );
   }
 
+  // El orden visual (arriba a abajo: arquero -> defensa -> mediocampo ->
+  // ataque) no coincidía con el orden en el DOM, que seguía el array
+  // crudo de la API — un lector de pantalla recorría la formación en un
+  // orden que no tenía relación con la cancha dibujada. `top` ya
+  // codifica la fila real de cada jugador; ordenar por ahí antes de
+  // pintar alinea lectura y layout sin tocar el posicionamiento (que
+  // sigue siendo absoluto, por `top`/`left`).
+  const readingOrder = [...placed].sort((a, b) => a.top - b.top);
+
   return (
     <div className="pitch">
-      {placed.map(({ player, top, left }) => (
+      {readingOrder.map(({ player, top, left }) => (
         <div
           key={player.id}
           className="pitch-player"

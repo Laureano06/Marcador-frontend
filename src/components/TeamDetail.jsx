@@ -3,6 +3,7 @@ import { fetchTeamProfile } from "../api";
 import { crestColor } from "../utils";
 import FavoriteButton from "./FavoriteButton";
 import { ChevronLeftIcon } from "./icons";
+import { useDocumentMeta } from "../useDocumentMeta";
 
 const POSITION_ORDER = ["Goalkeepers", "Defenders", "Midfielders", "Forwards"];
 const POSITION_LABEL = {
@@ -47,6 +48,15 @@ export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorit
   useEffect(() => {
     load();
   }, [load]);
+
+  useDocumentMeta({
+    title: profile ? `${profile.name} — Plantel y resultados | PARTIDOS` : "PARTIDOS",
+    description: profile
+      ? `Plantel, resultados y datos de ${profile.name}${
+          profile.country ? ` (${profile.country})` : ""
+        } en PARTIDOS.`
+      : undefined,
+  });
 
   // "Impronta" del club: no todos tienen colores de marca cargados en la
   // API, así que usamos el mismo hash de color que ya se usa como

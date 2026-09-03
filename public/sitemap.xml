@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  El contenido real de PARTIDOS es casi todo dinámico (una URL por fecha,
+  por equipo, por partido — miles de combinaciones que cambian todos los
+  días), así que un sitemap estático no puede listarlas todas de forma
+  honesta sin un paso de generación en el build que hoy no existe. Este
+  sitemap lista solo la URL estable de verdad: la raíz, que ya redirige
+  al feed de hoy.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://www.partidos.com.ar/</loc>
+    <changefreq>always</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
