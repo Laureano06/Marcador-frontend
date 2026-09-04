@@ -58,29 +58,57 @@ function Predictions({ predictions, home, away }) {
   );
 }
 
+const LIVE_POLL_MS = 30000; // alineado con el TTL de detalle en vivo del backend (server.js)
+
 export default function MatchDetail({ matchId, onBack }) {
   const [detail, setDetail] = useState(null);
   const [status, setStatus] = useState("loading"); // loading | ok | error
   const [errorMessage, setErrorMessage] = useState("");
 
-  const load = useCallback(() => {
-    setStatus("loading");
-    setDetail(null);
-    fetchMatchDetail(matchId)
-      .then((data) => {
-        setDetail(data);
-        setStatus("ok");
-      })
-      .catch((err) => {
-        console.error(err);
-        setErrorMessage(err.message);
-        setStatus("error");
-      });
-  }, [matchId]);
+  // isRefresh=true es un refresh de fondo (polling de un partido en vivo):
+  // no vuelve a "loading" ni borra el detalle ya mostrado, así no hay
+  // parpadeo cada 30s. Un error en un refresh de fondo tampoco tira la
+  // pantalla a error state — se mantiene el último dato bueno y se
+  // reintenta en el próximo tick, igual que ya hace el feed del día.
+  const load = useCallback(
+    ({ isRefresh = false } = {}) => {
+      if (!isRefresh) {
+        setStatus("loading");
+        setDetail(null);
+      }
+      return fetchMatchDetail(matchId)
+        .then((data) => {
+          setDetail(data);
+          setStatus("ok");
+        })
+        .catch((err) => {
+          if (isRefresh) {
+            console.error("[match-detail] refresh en vivo falló:", err.message);
+            return;
+          }
+          console.error(err);
+          setErrorMessage(err.message);
+          setStatus("error");
+        });
+    },
+    [matchId]
+  );
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // Antes esta pantalla no se actualizaba sola nunca — para ver el
+  // minuto o un gol nuevo había que volver atrás y entrar de nuevo. Con
+  // la cuota de BSD (7.500/día) actualizar cada 30s es asequible incluso
+  // si varias personas miran el mismo partido a la vez (comparten la
+  // misma entrada de cache del backend). Se corta solo en cuanto el
+  // partido pasa a FINAL — ahí ya no hay nada más que vaya a cambiar.
+  useEffect(() => {
+    if (status !== "ok" || detail?.status !== "live") return;
+    const id = setInterval(() => load({ isRefresh: true }), LIVE_POLL_MS);
+    return () => clearInterval(id);
+  }, [status, detail?.status, load]);
 
   useDocumentMeta({
     title: matchTitle(detail),
