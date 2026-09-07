@@ -4,6 +4,16 @@ import { crestColor, liveMinuteLabel } from "../utils";
 import LineupPitch from "./LineupPitch";
 import { ChevronLeftIcon } from "./icons";
 import { useDocumentMeta } from "../useDocumentMeta";
+import { useStructuredData } from "../useStructuredData";
+
+// schema.org no tiene un EventStatusType limpio para "en vivo" ni
+// "finalizado" (solo Scheduled/Cancelled/Postponed/Rescheduled/
+// MovedOnline) — mejor omitir el campo en esos dos casos que mandar un
+// valor que no es ninguno de los que Google espera.
+const EVENT_STATUS = {
+  scheduled: "https://schema.org/EventScheduled",
+  postponed: "https://schema.org/EventPostponed",
+};
 
 function matchTitle(detail) {
   if (!detail) return "PARTIDOS";
@@ -116,6 +126,21 @@ export default function MatchDetail({ matchId, onBack }) {
       ? `${detail.home?.name} vs ${detail.away?.name}: resultado, estadísticas y alineación en PARTIDOS.`
       : undefined,
   });
+
+  useStructuredData(
+    detail
+      ? {
+          "@context": "https://schema.org",
+          "@type": "SportsEvent",
+          name: `${detail.home?.name} vs ${detail.away?.name}`,
+          startDate: detail.start,
+          sport: "Football",
+          ...(EVENT_STATUS[detail.status] ? { eventStatus: EVENT_STATUS[detail.status] } : {}),
+          homeTeam: { "@type": "SportsTeam", name: detail.home?.name },
+          awayTeam: { "@type": "SportsTeam", name: detail.away?.name },
+        }
+      : null
+  );
 
   return (
     <div className="match-detail">

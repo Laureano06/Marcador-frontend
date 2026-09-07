@@ -4,6 +4,7 @@ import { addDays, labelForDate } from "../utils";
 import MatchFeed from "../components/MatchFeed";
 import { CloseIcon } from "../components/icons";
 import { useDocumentMeta } from "../useDocumentMeta";
+import { useStructuredData } from "../useStructuredData";
 
 const SWIPE_THRESHOLD_PX = 60;
 
@@ -46,6 +47,30 @@ export default function DayFeedPage() {
           ).toLowerCase()}, de todas las ligas del mundo.`
         : "Resultados de fútbol en vivo de todas las ligas del mundo, minuto a minuto.",
   });
+
+  // ItemList de SportsEvent para que un crawler que ejecuta JS entienda
+  // qué partidos hay en ESTA fecha puntual, no solo que la app existe
+  // (eso ya lo dice el WebApplication estático de index.html). Tope de
+  // 50 para no mandar un script gigante en un día con muchos partidos.
+  useStructuredData(
+    matchesStatus === "ok" && matches.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: `Partidos de fútbol — ${labelForDate(date)}`,
+          itemListElement: matches.slice(0, 50).map((m, i) => ({
+            "@type": "SportsEvent",
+            position: i + 1,
+            name: `${m.home} vs ${m.away}`,
+            startDate: m.start,
+            sport: "Football",
+            homeTeam: { "@type": "SportsTeam", name: m.home },
+            awayTeam: { "@type": "SportsTeam", name: m.away },
+            superEvent: { "@type": "SportsEvent", name: m.league },
+          })),
+        }
+      : null
+  );
 
   // "left" | "right" | null — de qué lado entra la animación, detectado
   // comparando la fecha nueva con la anterior (funciona tanto con swipe
