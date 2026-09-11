@@ -63,8 +63,9 @@ export async function fetchPlayerDetail(playerId) {
   return getJson(`/api/players/${playerId}`);
 }
 
-export async function fetchCompetitionDetail(leagueId) {
-  return getJson(`/api/leagues/${leagueId}`);
+export async function fetchCompetitionDetail(leagueId, seasonId) {
+  const query = seasonId ? `?season=${seasonId}` : "";
+  return getJson(`/api/leagues/${leagueId}${query}`);
 }
 
 export async function fetchRefereeDetail(refereeId) {

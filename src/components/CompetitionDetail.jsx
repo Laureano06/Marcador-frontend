@@ -115,11 +115,17 @@ export default function CompetitionDetail({ leagueId, onBack }) {
   const [status, setStatus] = useState("loading"); // loading | ok | error
   const [errorMessage, setErrorMessage] = useState("");
   const [activeTab, setActiveTab] = useState("tabla");
+  // undefined = "temporada actual, la que decida el backend" — solo pasa
+  // a tener un valor puntual cuando el usuario elige una temporada
+  // vieja en el selector. Volver a null en vez de guardar el id de la
+  // actual evita que quedar "pisada" en una temporada vieja si el
+  // usuario cambia de competencia sin tocar el selector.
+  const [selectedSeasonId, setSelectedSeasonId] = useState(undefined);
 
   const load = useCallback(() => {
     setStatus("loading");
     setCompetition(null);
-    fetchCompetitionDetail(leagueId)
+    fetchCompetitionDetail(leagueId, selectedSeasonId)
       .then((data) => {
         setCompetition(data);
         setStatus("ok");
@@ -129,11 +135,15 @@ export default function CompetitionDetail({ leagueId, onBack }) {
         setErrorMessage(err.message);
         setStatus("error");
       });
-  }, [leagueId]);
+  }, [leagueId, selectedSeasonId]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    setSelectedSeasonId(undefined); // otra competencia -> volvemos a "temporada actual"
+  }, [leagueId]);
 
   useDocumentMeta({
     title: competition ? `${competition.name}: tabla, partidos y goleadores | PARTIDOS` : "PARTIDOS",
@@ -189,10 +199,29 @@ export default function CompetitionDetail({ leagueId, onBack }) {
               <h1>{competition.name}</h1>
               <div className="competition-header-meta">
                 {competition.country && <span>{competition.country}</span>}
-                {competition.season?.name && <span>{competition.season.name}</span>}
+                {!competition.seasons?.length && competition.season?.name && (
+                  <span>{competition.season.name}</span>
+                )}
               </div>
             </div>
           </div>
+
+          {competition.seasons?.length > 1 && (
+            <label className="season-select-wrap">
+              <span className="sr-only">Temporada</span>
+              <select
+                className="season-select"
+                value={competition.season?.id ?? ""}
+                onChange={(e) => setSelectedSeasonId(e.target.value)}
+              >
+                {competition.seasons.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
           {availableTabs.length > 0 && (
             <div className="match-tabs" role="tablist">

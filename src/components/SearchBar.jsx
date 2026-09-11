@@ -1,18 +1,21 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { search } from "../api";
+import PlayerFace from "./PlayerFace";
 import { DURATION, EASE_OUT } from "../motion";
 
 const DEBOUNCE_MS = 450; // esperamos a que el usuario deje de tipear antes
                           // de gastar una búsqueda contra la API externa
 
-export default function SearchBar({ onSelectTeam }) {
+export default function SearchBar({ onSelectTeam, onSelectPlayer }) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState(null); // { teams, leagues } | null
+  const [results, setResults] = useState(null); // { teams, leagues, players } | null
   const [status, setStatus] = useState("idle"); // idle | loading | ok | error
   const [open, setOpen] = useState(false);
-  // -1 = nada resaltado. Solo los equipos son seleccionables (las ligas
-  // son texto estático), así que el índice recorre results.teams.
+  // -1 = nada resaltado. Ligas es texto estático (no se navega); equipos
+  // y jugadores sí, en un solo índice que recorre [...teams, ...players]
+  // en ese orden — así ArrowDown/ArrowUp no tienen que saber en qué
+  // grupo está el resaltado actual.
   const [highlighted, setHighlighted] = useState(-1);
   const debounceRef = useRef(null);
   const boxRef = useRef(null);
@@ -63,39 +66,53 @@ export default function SearchBar({ onSelectTeam }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelectTeam = (team) => {
-    onSelectTeam(team.id);
+  const closeAndReset = () => {
     setOpen(false);
     setQuery("");
     setResults(null);
     setHighlighted(-1);
   };
 
-  const teams = results?.teams || [];
+  const handleSelectTeam = (team) => {
+    onSelectTeam(team.id);
+    closeAndReset();
+  };
 
-  // Navegación por teclado: flechas mueven el resaltado entre equipos
-  // (las ligas son texto estático, no se navegan), Enter selecciona,
-  // Escape cierra. Sin esto, un usuario de lector de pantalla no tenía
-  // forma de recorrer los resultados más que Tab secuencial, y no había
-  // ninguna señal de que algo hubiera aparecido al escribir.
+  const handleSelectPlayer = (player) => {
+    onSelectPlayer(player.id);
+    closeAndReset();
+  };
+
+  const teams = results?.teams || [];
+  const players = results?.players || [];
+  const navigable = [...teams, ...players];
+
+  // Navegación por teclado: flechas mueven el resaltado entre equipos y
+  // jugadores (las ligas son texto estático, no se navegan), Enter
+  // selecciona, Escape cierra. Sin esto, un usuario de lector de
+  // pantalla no tenía forma de recorrer los resultados más que Tab
+  // secuencial, y no había ninguna señal de que algo hubiera aparecido
+  // al escribir.
   const handleKeyDown = (e) => {
-    if (!open || teams.length === 0) return;
+    if (!open || navigable.length === 0) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setHighlighted((i) => (i + 1) % teams.length);
+      setHighlighted((i) => (i + 1) % navigable.length);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setHighlighted((i) => (i <= 0 ? teams.length - 1 : i - 1));
+      setHighlighted((i) => (i <= 0 ? navigable.length - 1 : i - 1));
     } else if (e.key === "Enter" && highlighted >= 0) {
       e.preventDefault();
-      handleSelectTeam(teams[highlighted]);
+      const picked = navigable[highlighted];
+      if (highlighted < teams.length) handleSelectTeam(picked);
+      else handleSelectPlayer(picked);
     } else if (e.key === "Escape") {
       setOpen(false);
     }
   };
 
   const hasResults =
-    results && (results.teams.length > 0 || results.leagues.length > 0);
+    results && (results.teams.length > 0 || results.leagues.length > 0 || results.players.length > 0);
 
   // Antes el dropdown no aparecía en absoluto por debajo de 3 caracteres
   // — para alguien tipeando lento, eso lee como que la búsqueda está
@@ -106,13 +123,13 @@ export default function SearchBar({ onSelectTeam }) {
   return (
     <div className="search-box" ref={boxRef}>
       <label htmlFor="search-input" className="sr-only">
-        Buscar equipo o liga
+        Buscar equipo, jugador o liga
       </label>
       <input
         id="search-input"
         className="search-input"
         type="text"
-        placeholder="Buscar equipo o liga…"
+        placeholder="Buscar equipo, jugador o liga…"
         value={query}
         onChange={handleChange}
         onFocus={() => setOpen(true)}
@@ -138,7 +155,9 @@ export default function SearchBar({ onSelectTeam }) {
           (hasResults
             ? `${teams.length} equipo${teams.length === 1 ? "" : "s"}, ${
                 results.leagues.length
-              } liga${results.leagues.length === 1 ? "" : "s"} encontrados`
+              } liga${results.leagues.length === 1 ? "" : "s"}, ${players.length} jugador${
+                players.length === 1 ? "" : "es"
+              } encontrados`
             : `Sin resultados para ${query}`)}
       </span>
 
@@ -187,6 +206,32 @@ export default function SearchBar({ onSelectTeam }) {
                     <span className="search-result-country">{team.country}</span>
                   </button>
                 ))}
+              </div>
+            )}
+
+            {status === "ok" && players.length > 0 && (
+              <div className="search-group">
+                <div className="search-group-label">Jugadores</div>
+                {players.map((player, i) => {
+                  const navIndex = teams.length + i;
+                  return (
+                    <button
+                      key={player.id}
+                      id={`search-option-${navIndex}`}
+                      role="option"
+                      aria-selected={highlighted === navIndex}
+                      className={
+                        "search-result" + (highlighted === navIndex ? " highlighted" : "")
+                      }
+                      onClick={() => handleSelectPlayer(player)}
+                      onMouseEnter={() => setHighlighted(navIndex)}
+                    >
+                      <PlayerFace photo={player.photo} name={player.name} size="sm" />
+                      <span>{player.name}</span>
+                      <span className="search-result-country">{player.teamName}</span>
+                    </button>
+                  );
+                })}
               </div>
             )}
 

@@ -104,6 +104,7 @@ export default function Layout() {
 
   const goHome = () => navigate(`/fecha/${toDateKey(new Date())}`);
   const openTeam = (id) => navigate(`/equipo/${id}`);
+  const openPlayer = (id) => navigate(`/jugador/${id}`);
 
   // Transición de página SOLO entre TIPOS de pantalla distintos (feed de
   // un día -> ficha de equipo -> detalle de partido) — navegar entre
@@ -160,7 +161,7 @@ export default function Layout() {
             )}
           </div>
 
-          <SearchBar onSelectTeam={openTeam} />
+          <SearchBar onSelectTeam={openTeam} onSelectPlayer={openPlayer} />
 
           {activeDate && (
             <div className="day-nav">
