@@ -5,6 +5,7 @@ import LineupPitch from "./LineupPitch";
 import { ChevronLeftIcon } from "./icons";
 import { useDocumentMeta } from "../useDocumentMeta";
 import { useStructuredData } from "../useStructuredData";
+import { AnimatedScore } from "../motion";
 
 // schema.org no tiene un EventStatusType limpio para "en vivo" ni
 // "finalizado" (solo Scheduled/Cancelled/Postponed/Rescheduled/
@@ -181,7 +182,7 @@ export default function MatchDetail({ matchId, onBack }) {
                 "VS"
               ) : (
                 <>
-                  {detail.home?.score} - {detail.away?.score}
+                  <AnimatedScore value={detail.home?.score} /> - <AnimatedScore value={detail.away?.score} />
                 </>
               )}
               {detail.status === "live" && (

@@ -1,6 +1,7 @@
 import { groupByLeague } from "../utils";
 import MatchCard from "./MatchCard";
 import FavoriteButton from "./FavoriteButton";
+import { FadeIn, StaggerContainer, StaggerItem } from "../motion";
 
 const EMPTY_COPY = {
   todos: "No hay partidos cargados para este día.",
@@ -42,23 +43,29 @@ export default function MatchFeed({
     <>
       {leagues.map(([league, leagueMatches]) => (
         <div key={league}>
-          <div className="league-bar">
+          <FadeIn className="league-bar">
             <span>{league}</span>
             <FavoriteButton
               active={isLeagueFavorite(league)}
               onClick={() => onToggleLeague(league)}
             />
-          </div>
-          {leagueMatches.map((m) => (
-            <MatchCard
-              key={m.id}
-              match={m}
-              onSelectTeam={onSelectTeam}
-              onSelectMatch={onSelectMatch}
-              isTeamFavorite={isTeamFavorite}
-              onToggleTeam={onToggleTeam}
-            />
-          ))}
+          </FadeIn>
+          {/* La cabecera de liga entra primero (FadeIn arriba), los
+              partidos entran después en cascada (50ms entre uno y el
+              siguiente) — no todos a la vez. */}
+          <StaggerContainer>
+            {leagueMatches.map((m) => (
+              <StaggerItem key={m.id}>
+                <MatchCard
+                  match={m}
+                  onSelectTeam={onSelectTeam}
+                  onSelectMatch={onSelectMatch}
+                  isTeamFavorite={isTeamFavorite}
+                  onToggleTeam={onToggleTeam}
+                />
+              </StaggerItem>
+            ))}
+          </StaggerContainer>
         </div>
       ))}
     </>

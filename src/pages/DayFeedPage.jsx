@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
+import { motion } from "motion/react";
 import { addDays, labelForDate } from "../utils";
 import MatchFeed from "../components/MatchFeed";
 import { CloseIcon } from "../components/icons";
 import { useDocumentMeta } from "../useDocumentMeta";
 import { useStructuredData } from "../useStructuredData";
+import { SkeletonLoader, SPRING } from "../motion";
 
 const SWIPE_THRESHOLD_PX = 60;
 
@@ -168,7 +170,14 @@ export default function DayFeedPage() {
                 }
                 onClick={() => setFeedFilter(f.key)}
               >
-                {f.label}
+                {feedFilter === f.key && (
+                  <motion.span
+                    layoutId="feed-filter-pill"
+                    className="feed-filter-pill"
+                    transition={SPRING}
+                  />
+                )}
+                <span className="feed-filter-label">{f.label}</span>
               </button>
             ))}
           </div>
@@ -200,7 +209,7 @@ export default function DayFeedPage() {
               </button>
             </div>
           )}
-          {matchesStatus === "loading" && <p className="empty">Cargando partidos…</p>}
+          {matchesStatus === "loading" && <SkeletonLoader />}
           {matchesStatus === "ok" && (
             <MatchFeed
               matches={visibleMatches}

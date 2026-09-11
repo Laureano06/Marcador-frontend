@@ -545,6 +545,7 @@ header {
 }
 
 .feed-filter-btn {
+  position: relative;
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
@@ -555,7 +556,7 @@ header {
   padding: 6px 12px;
   border-radius: 16px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
 .feed-filter-btn:hover {
@@ -565,8 +566,27 @@ header {
 
 .feed-filter-btn.active {
   color: var(--accent-text);
-  background: var(--accent);
   border-color: var(--accent);
+}
+
+/* El fondo del botón activo es un motion.span con layoutId compartido
+   entre los tres botones (ver DayFeedPage.jsx) — Motion anima la
+   posición/ancho de ESTE elemento entre renders aunque el DOM de cada
+   botón sea distinto, dando el efecto de indicador deslizante en vez de
+   un salto de color instantáneo. -1px de inset tapa el borde de 1px del
+   botón (que ya pasa a accent cuando está activo, así no se nota la
+   costura). */
+.feed-filter-pill {
+  position: absolute;
+  inset: -1px;
+  background: var(--accent);
+  border-radius: 16px;
+  z-index: 0;
+}
+
+.feed-filter-label {
+  position: relative;
+  z-index: 1;
 }
 
 /* --- Buscador --- */
@@ -891,20 +911,91 @@ header {
   padding: 14px 16px;
   margin-bottom: 8px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease,
-    transform 0.15s ease, box-shadow 0.15s ease;
+  /* El levantamiento/escala al hover-tap lo maneja Motion (HoverCard,
+     ver src/motion/) con transform inline — CSS solo se ocupa de lo que
+     Motion no toca (fondo, borde, sombra), para no declarar "transform"
+     en dos lugares a la vez con mecanismos distintos peleando por el
+     mismo estilo inline. */
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .match:hover {
   background: var(--bg-card-hover);
   border-color: var(--text-dimmer);
-  transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .match:active {
-  transform: translateY(0);
   box-shadow: none;
+}
+
+/* --- Skeleton de carga (SkeletonLoader) --- */
+.skeleton-card {
+  cursor: default;
+  pointer-events: none;
+}
+
+.skeleton {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(
+    100deg,
+    var(--bg-card-hover) 30%,
+    rgba(255, 255, 255, 0.08) 50%,
+    var(--bg-card-hover) 70%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 150% 0;
+  }
+  100% {
+    background-position: -50% 0;
+  }
+}
+
+.skeleton-crest {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-name {
+  width: 72px;
+  height: 13px;
+  margin-left: 10px;
+}
+
+.side.away .skeleton-name {
+  margin-left: 0;
+  margin-right: 10px;
+}
+
+.skeleton-score {
+  width: 48px;
+  height: 18px;
+}
+
+.skeleton-league-name {
+  width: 120px;
+  height: 13px;
+}
+
+.skeleton-group {
+  margin-bottom: 4px;
+}
+
+/* Quien prefiere menos movimiento tampoco necesita el shimmer corriendo
+   sin parar — el skeleton sigue comunicando "esto está cargando" solo
+   con su forma/color, sin la animación. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
 }
 
 .match-top {
@@ -1002,6 +1093,21 @@ header {
   font-size: 18px;
   letter-spacing: 2px;
   color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* AnimatedScore: grid de una sola celda para que el número saliente y el
+   entrante se superpongan durante el crossfade sin empujar el "-" de al
+   lado ni el resto de la tarjeta. */
+.animated-score {
+  display: inline-grid;
+  min-width: 1ch;
+}
+
+.animated-score-value {
+  grid-area: 1 / 1;
 }
 
 .status-badge {

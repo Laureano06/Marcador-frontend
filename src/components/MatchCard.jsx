@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { crestColor, formatTime, liveMinuteLabel } from "../utils";
 import FavoriteButton from "./FavoriteButton";
+import { HoverCard, AnimatedScore } from "../motion";
 
 // Muestra el escudo real (fondo blanco) si la API nos dio una URL. Si no
 // hay URL, o si la imagen falla al cargar, cae a un círculo de color con
@@ -80,7 +81,7 @@ export default function MatchCard({
   const hasScore = match.scoreHome !== null && match.scoreAway !== null;
 
   return (
-    <div
+    <HoverCard
       className="match"
       onClick={() => onSelectMatch?.(match)}
       onKeyDown={(e) => {
@@ -113,7 +114,13 @@ export default function MatchCard({
 
         <div className="center">
           <div className="score">
-            {hasScore ? `${match.scoreHome} - ${match.scoreAway}` : "VS"}
+            {hasScore ? (
+              <>
+                <AnimatedScore value={match.scoreHome} /> - <AnimatedScore value={match.scoreAway} />
+              </>
+            ) : (
+              "VS"
+            )}
           </div>
           <StatusBadge
             status={match.status}
@@ -149,6 +156,6 @@ export default function MatchCard({
           </div>
         </div>
       )}
-    </div>
+    </HoverCard>
   );
 }
