@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { groupByLeague } from "../utils";
 import MatchCard from "./MatchCard";
 import FavoriteButton from "./FavoriteButton";
@@ -45,7 +46,13 @@ export default function MatchFeed({
       {leagues.map(([league, leagueMatches]) => (
         <div key={league}>
           <FadeIn className="league-bar">
-            <span>{league}</span>
+            {leagueMatches[0]?.leagueId ? (
+              <Link to={`/competicion/${leagueMatches[0].leagueId}`} className="league-bar-link">
+                {league}
+              </Link>
+            ) : (
+              <span>{league}</span>
+            )}
             <FavoriteButton
               active={isLeagueFavorite(league)}
               onClick={() => onToggleLeague(league)}

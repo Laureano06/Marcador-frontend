@@ -62,3 +62,7 @@ export async function fetchMatchDetail(matchId) {
 export async function fetchPlayerDetail(playerId) {
   return getJson(`/api/players/${playerId}`);
 }
+
+export async function fetchCompetitionDetail(leagueId) {
+  return getJson(`/api/leagues/${leagueId}`);
+}
