@@ -154,6 +154,10 @@ export default function Layout() {
               PARTIDOS
             </button>
 
+            <button className="transfers-nav-btn" onClick={() => navigate("/transferencias")}>
+              Fichajes
+            </button>
+
             {canInstall && (
               <button className="install-btn" onClick={promptInstall} aria-label="Instalar app">
                 <DownloadIcon /> <span aria-hidden="true">Instalar app</span>

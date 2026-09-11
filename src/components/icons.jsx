@@ -60,6 +60,15 @@ export function ChevronRightIcon(props) {
   );
 }
 
+export function ArrowRightIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <line x1="4" y1="12" x2="20" y2="12" />
+      <polyline points="14 6 20 12 14 18" />
+    </svg>
+  );
+}
+
 export function DownloadIcon(props) {
   return (
     <svg {...base} {...props}>

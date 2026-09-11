@@ -79,3 +79,16 @@ export async function fetchManagerDetail(managerId) {
 export async function fetchVenueDetail(venueId) {
   return getJson(`/api/venues/${venueId}`);
 }
+
+// filters: { league_id, has_fee, ordering, offset } — cualquier clave con
+// valor undefined/null/"" se omite en vez de mandarse vacía (el backend
+// reenvía tal cual a BSD, que rechaza con 400 un param desconocido pero
+// no uno ausente).
+export async function fetchTransfers(filters = {}) {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") params.set(key, value);
+  });
+  const query = params.toString();
+  return getJson(`/api/transfers${query ? `?${query}` : ""}`); // { count, transfers: [...] }
+}
