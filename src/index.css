@@ -1591,6 +1591,146 @@ header {
   color: var(--text);
 }
 
+/* --- Forma reciente (MatchH2H, FormStrip) --- */
+.form-strip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.form-strip-team {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.form-strip-chips {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.form-chip {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: #141416;
+  cursor: default;
+}
+
+.form-chip-W {
+  background: #50c878;
+}
+
+.form-chip-D {
+  background: var(--text-dimmer);
+}
+
+.form-chip-L {
+  background: #d9463d;
+  color: #ffffff;
+}
+
+/* --- Estadísticas por jugador (MatchPlayerStats) --- */
+.player-stats-table {
+  margin-bottom: 20px;
+}
+
+.player-stats-team-title {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-dimmer);
+  margin-bottom: 8px;
+}
+
+.player-stats-header,
+.player-stats-row {
+  display: grid;
+  grid-template-columns: 1fr repeat(5, 40px);
+  align-items: center;
+  gap: 4px;
+}
+
+.player-stats-header {
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.player-stats-sort {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dimmer);
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+  text-align: center;
+}
+
+.player-stats-sort:hover {
+  color: var(--text-dim);
+}
+
+.player-stats-sort.active {
+  color: var(--accent);
+}
+
+.player-stats-list {
+  list-style: none;
+}
+
+.player-stats-row {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.player-stats-row-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--text);
+  font-size: 12.5px;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-stats-row-name:hover {
+  color: var(--accent);
+}
+
+.player-stats-cell {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .player-stats-header,
+  .player-stats-row {
+    grid-template-columns: 1fr repeat(5, 30px);
+    font-size: 10px;
+  }
+}
+
 /* --- xG / shotmap (MatchShotmap) --- */
 .xg-estimated-tag {
   margin-left: 8px;

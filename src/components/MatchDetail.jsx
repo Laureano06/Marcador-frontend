@@ -6,6 +6,7 @@ import LineupPitch from "./LineupPitch";
 import MatchEvents from "./MatchEvents";
 import MatchH2H from "./MatchH2H";
 import MatchShotmap from "./MatchShotmap";
+import MatchPlayerStats from "./MatchPlayerStats";
 import { ChevronLeftIcon } from "./icons";
 import { useDocumentMeta } from "../useDocumentMeta";
 import { useStructuredData } from "../useStructuredData";
@@ -230,16 +231,17 @@ export default function MatchDetail({ matchId, onBack }) {
       : null
   );
 
-  // Nombre de cada jugador por id, para poder mostrar el nombre en la
-  // lista de remates (el shotmap solo trae el id) — se arma solo cuando
-  // hay alineación, así el shotmap sigue funcionando (con "Jugador"
-  // genérico) aunque la alineación todavía no esté confirmada.
+  // Nombre + foto de cada jugador por id, para mostrarlos en el shotmap
+  // y en las estadísticas por jugador (esos dos endpoints solo traen el
+  // id) — se arma solo cuando hay alineación, así las dos secciones
+  // siguen funcionando (con "Jugador"/sin foto) aunque la alineación
+  // todavía no esté confirmada.
   const playersById = useMemo(() => {
     if (!detail?.lineups) return null;
     const map = new Map();
     for (const side of [detail.lineups.home, detail.lineups.away]) {
       for (const p of [...(side?.starters || []), ...(side?.substitutes || [])]) {
-        map.set(p.id, p.name);
+        map.set(p.id, { name: p.name, photo: p.photo });
       }
     }
     return map;
@@ -249,10 +251,10 @@ export default function MatchDetail({ matchId, onBack }) {
     ? TABS.filter((t) => {
         if (t.key === "resumen") return true;
         if (t.key === "alineaciones") return !!detail.lineups;
-        if (t.key === "estadisticas") return !!detail.statistics?.length;
+        if (t.key === "estadisticas") return !!detail.statistics?.length || !!detail.playerStats?.length;
         if (t.key === "eventos") return !!detail.events?.length;
         if (t.key === "xg") return !!detail.xg || !!detail.shotmap?.length;
-        if (t.key === "h2h") return !!detail.h2h;
+        if (t.key === "h2h") return !!detail.h2h || !!detail.form?.home?.length || !!detail.form?.away?.length;
         if (t.key === "pronostico") return !!detail.predictions;
         return false;
       })
@@ -375,14 +377,26 @@ export default function MatchDetail({ matchId, onBack }) {
             </>
           )}
 
-          {currentTab === "estadisticas" && detail.statistics && (
-            <div className="team-section">
-              <div className="match-stats-list">
-                {detail.statistics.map((row, i) => (
-                  <StatRow key={i} label={row.label} home={row.home} away={row.away} />
-                ))}
-              </div>
-            </div>
+          {currentTab === "estadisticas" && (
+            <>
+              {detail.statistics && (
+                <div className="team-section">
+                  <div className="match-stats-list">
+                    {detail.statistics.map((row, i) => (
+                      <StatRow key={i} label={row.label} home={row.home} away={row.away} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              <MatchPlayerStats
+                playerStats={detail.playerStats}
+                homeId={detail.home?.id}
+                awayId={detail.away?.id}
+                homeName={detail.home?.name}
+                awayName={detail.away?.name}
+                playersById={playersById}
+              />
+            </>
           )}
 
           {currentTab === "eventos" && <MatchEvents events={detail.events} />}
@@ -398,7 +412,12 @@ export default function MatchDetail({ matchId, onBack }) {
           )}
 
           {currentTab === "h2h" && (
-            <MatchH2H h2h={detail.h2h} homeName={detail.home?.name} awayName={detail.away?.name} />
+            <MatchH2H
+              h2h={detail.h2h}
+              form={detail.form}
+              homeName={detail.home?.name}
+              awayName={detail.away?.name}
+            />
           )}
 
           {currentTab === "pronostico" && detail.predictions && (

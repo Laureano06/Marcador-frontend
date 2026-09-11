@@ -31,7 +31,7 @@ export default function MatchShotmap({ xg, shotmap, homeName, awayName, playersB
   const homePct = xg ? (xg.home / total) * 100 : 50;
   const awayPct = xg ? (xg.away / total) * 100 : 50;
 
-  const withNames = (shotmap || []).map((s) => ({ ...s, playerName: playersById?.get(s.playerId) }));
+  const withNames = (shotmap || []).map((s) => ({ ...s, playerName: playersById?.get(s.playerId)?.name }));
   const homeShots = withNames.filter((s) => s.isHome).sort((a, b) => b.minute - a.minute);
   const awayShots = withNames.filter((s) => !s.isHome).sort((a, b) => b.minute - a.minute);
 
