@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { fetchMatchDetail } from "../api";
 import { crestColor, liveMinuteLabel } from "../utils";
 import LineupPitch from "./LineupPitch";
 import { ChevronLeftIcon } from "./icons";
 import { useDocumentMeta } from "../useDocumentMeta";
 import { useStructuredData } from "../useStructuredData";
-import { AnimatedScore } from "../motion";
+import { AnimatedScore, EASE_OUT } from "../motion";
 
 // schema.org no tiene un EventStatusType limpio para "en vivo" ni
 // "finalizado" (solo Scheduled/Cancelled/Postponed/Rescheduled/
@@ -40,6 +41,47 @@ function TeamHeader({ team, side }) {
         </div>
       )}
       <div className="match-detail-team-name">{team.name}</div>
+    </div>
+  );
+}
+
+// Reparte una estadística entre local/visitante como porcentaje de la
+// SUMA de ambos (no de un total fijo de 100 — cosas como remates o
+// córners no suman 100 naturalmente, la posesión sí, y esto funciona
+// igual de bien para las dos). Con 0-0 (todavía no hay datos, ej. una
+// estadística que arranca en cero para ambos) se reparte 50/50 en vez
+// de dividir por cero.
+function statSplit(home, away) {
+  const h = Number(home) || 0;
+  const a = Number(away) || 0;
+  const total = h + a;
+  if (total === 0) return { home: 50, away: 50 };
+  return { home: (h / total) * 100, away: (a / total) * 100 };
+}
+
+function StatRow({ label, home, away }) {
+  const split = statSplit(home, away);
+  return (
+    <div className="match-stat-row">
+      <span className="match-stat-value">{home ?? "-"}</span>
+      <span className="match-stat-label">{label}</span>
+      <span className="match-stat-value">{away ?? "-"}</span>
+      <div className="stat-bar-track">
+        <motion.div
+          className="stat-bar-home"
+          initial={{ width: 0 }}
+          whileInView={{ width: `${split.home}%` }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: EASE_OUT }}
+        />
+        <motion.div
+          className="stat-bar-away"
+          initial={{ width: 0 }}
+          whileInView={{ width: `${split.away}%` }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: EASE_OUT }}
+        />
+      </div>
     </div>
   );
 }
@@ -209,11 +251,7 @@ export default function MatchDetail({ matchId, onBack }) {
               <h2 className="team-section-title">Estadísticas</h2>
               <div className="match-stats-list">
                 {detail.statistics.map((row, i) => (
-                  <div key={i} className="match-stat-row">
-                    <span className="match-stat-value">{row.home ?? "-"}</span>
-                    <span className="match-stat-label">{row.label}</span>
-                    <span className="match-stat-value">{row.away ?? "-"}</span>
-                  </div>
+                  <StatRow key={i} label={row.label} home={row.home} away={row.away} />
                 ))}
               </div>
             </div>

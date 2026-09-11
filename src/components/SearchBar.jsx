@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { search } from "../api";
+import { DURATION, EASE_OUT } from "../motion";
 
 const DEBOUNCE_MS = 450; // esperamos a que el usuario deje de tipear antes
                           // de gastar una búsqueda contra la API externa
@@ -140,58 +142,69 @@ export default function SearchBar({ onSelectTeam }) {
             : `Sin resultados para ${query}`)}
       </span>
 
-      {isOpen && (
-        <div className="search-dropdown" id={listboxId} role="listbox">
-          {isShort && (
-            <div className="search-msg">Seguí escribiendo…</div>
-          )}
-          {status === "loading" && (
-            <div className="search-msg">Buscando…</div>
-          )}
-          {status === "error" && (
-            <div className="search-msg">No se pudo buscar. Probá de nuevo.</div>
-          )}
-          {status === "ok" && !hasResults && (
-            <div className="search-msg">Sin resultados para "{query}"</div>
-          )}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            className="search-dropdown"
+            id={listboxId}
+            role="listbox"
+            initial={{ opacity: 0, scale: 0.97, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: -4 }}
+            transition={{ duration: DURATION.fast, ease: EASE_OUT }}
+            style={{ transformOrigin: "top" }}
+          >
+            {isShort && (
+              <div className="search-msg">Seguí escribiendo…</div>
+            )}
+            {status === "loading" && (
+              <div className="search-msg">Buscando…</div>
+            )}
+            {status === "error" && (
+              <div className="search-msg">No se pudo buscar. Probá de nuevo.</div>
+            )}
+            {status === "ok" && !hasResults && (
+              <div className="search-msg">Sin resultados para "{query}"</div>
+            )}
 
-          {status === "ok" && teams.length > 0 && (
-            <div className="search-group">
-              <div className="search-group-label">Equipos</div>
-              {teams.map((team, i) => (
-                <button
-                  key={team.id}
-                  id={`search-option-${i}`}
-                  role="option"
-                  aria-selected={highlighted === i}
-                  className={
-                    "search-result" + (highlighted === i ? " highlighted" : "")
-                  }
-                  onClick={() => handleSelectTeam(team)}
-                  onMouseEnter={() => setHighlighted(i)}
-                >
-                  {team.crest && <img src={team.crest} alt="" />}
-                  <span>{team.name}</span>
-                  <span className="search-result-country">{team.country}</span>
-                </button>
-              ))}
-            </div>
-          )}
+            {status === "ok" && teams.length > 0 && (
+              <div className="search-group">
+                <div className="search-group-label">Equipos</div>
+                {teams.map((team, i) => (
+                  <button
+                    key={team.id}
+                    id={`search-option-${i}`}
+                    role="option"
+                    aria-selected={highlighted === i}
+                    className={
+                      "search-result" + (highlighted === i ? " highlighted" : "")
+                    }
+                    onClick={() => handleSelectTeam(team)}
+                    onMouseEnter={() => setHighlighted(i)}
+                  >
+                    {team.crest && <img src={team.crest} alt="" />}
+                    <span>{team.name}</span>
+                    <span className="search-result-country">{team.country}</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
-          {status === "ok" && results.leagues.length > 0 && (
-            <div className="search-group">
-              <div className="search-group-label">Ligas</div>
-              {results.leagues.map((league) => (
-                <div key={league.id} className="search-result search-result-static">
-                  {league.logo && <img src={league.logo} alt="" />}
-                  <span>{league.name}</span>
-                  <span className="search-result-country">{league.country}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+            {status === "ok" && results.leagues.length > 0 && (
+              <div className="search-group">
+                <div className="search-group-label">Ligas</div>
+                {results.leagues.map((league) => (
+                  <div key={league.id} className="search-result search-result-static">
+                    {league.logo && <img src={league.logo} alt="" />}
+                    <span>{league.name}</span>
+                    <span className="search-result-country">{league.country}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

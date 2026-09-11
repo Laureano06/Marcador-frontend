@@ -1763,7 +1763,28 @@ footer {
   display: grid;
   grid-template-columns: 50px 1fr 50px;
   align-items: center;
-  gap: 10px;
+  gap: 10px 10px;
+}
+
+/* Barra comparativa debajo de cada fila — mismo lenguaje visual que
+   .prob-bar (predicciones): dos segmentos lado a lado, cada uno
+   proporcional a su parte del total entre los dos equipos. Ocupa las 3
+   columnas de la fila (grid-column: 1/-1) en una segunda línea implícita. */
+.stat-bar-track {
+  grid-column: 1 / -1;
+  display: flex;
+  height: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.stat-bar-home {
+  background: var(--accent);
+}
+
+.stat-bar-away {
+  background: var(--gray-mid);
 }
 
 .match-stat-value {
