@@ -6,6 +6,9 @@ import TeamDetailPage from "./pages/TeamDetailPage";
 import MatchDetailPage from "./pages/MatchDetailPage";
 import PlayerDetailPage from "./pages/PlayerDetailPage";
 import CompetitionDetailPage from "./pages/CompetitionDetailPage";
+import RefereeDetailPage from "./pages/RefereeDetailPage";
+import ManagerDetailPage from "./pages/ManagerDetailPage";
+import VenueDetailPage from "./pages/VenueDetailPage";
 
 const todayKey = toDateKey(new Date());
 
@@ -19,6 +22,9 @@ export default function App() {
         <Route path="partido/:id" element={<MatchDetailPage />} />
         <Route path="jugador/:id" element={<PlayerDetailPage />} />
         <Route path="competicion/:id" element={<CompetitionDetailPage />} />
+        <Route path="arbitro/:id" element={<RefereeDetailPage />} />
+        <Route path="entrenador/:id" element={<ManagerDetailPage />} />
+        <Route path="estadio/:id" element={<VenueDetailPage />} />
         <Route path="*" element={<Navigate to={`/fecha/${todayKey}`} replace />} />
       </Route>
     </Routes>

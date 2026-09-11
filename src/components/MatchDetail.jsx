@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { fetchMatchDetail } from "../api";
 import { crestColor, liveMinuteLabel } from "../utils";
@@ -127,16 +128,56 @@ function MatchMeta({ detail }) {
   if (detail.isDerby) parts.push("Clásico");
   if (detail.attendance) parts.push(`${detail.attendance.toLocaleString("es-AR")} espectadores`);
 
-  if (parts.length === 0 && !detail.weather) return null;
+  const homeCoach = detail.home?.coach;
+  const awayCoach = detail.away?.coach;
+  const hasOfficials = detail.referee || detail.venue;
+  const hasCoaches = homeCoach || awayCoach;
+
+  if (parts.length === 0 && !detail.weather && !hasOfficials && !hasCoaches) return null;
 
   return (
-    <div className="match-meta-row">
-      {parts.length > 0 && <span className="match-meta-text">{parts.join(" · ")}</span>}
-      {detail.weather && (detail.weather.temperatureC != null || detail.weather.description) && (
-        <span className="match-meta-weather">
-          {WEATHER_ICON[detail.weather.description] || ""}
-          {detail.weather.temperatureC != null ? ` ${Math.round(detail.weather.temperatureC)}°C` : ""}
-        </span>
+    <div className="match-meta">
+      {(parts.length > 0 || detail.weather) && (
+        <div className="match-meta-row">
+          {parts.length > 0 && <span className="match-meta-text">{parts.join(" · ")}</span>}
+          {detail.weather && (detail.weather.temperatureC != null || detail.weather.description) && (
+            <span className="match-meta-weather">
+              {WEATHER_ICON[detail.weather.description] || ""}
+              {detail.weather.temperatureC != null ? ` ${Math.round(detail.weather.temperatureC)}°C` : ""}
+            </span>
+          )}
+        </div>
+      )}
+      {hasOfficials && (
+        <div className="match-meta-row match-meta-officials">
+          {detail.referee && (
+            <span className="match-meta-text">
+              Árbitro:{" "}
+              <Link to={`/arbitro/${detail.referee.id}`} className="match-meta-link">
+                {detail.referee.name}
+              </Link>
+            </span>
+          )}
+          {detail.venue && (
+            <Link to={`/estadio/${detail.venue.id}`} className="match-meta-link">
+              {detail.venue.name}
+            </Link>
+          )}
+        </div>
+      )}
+      {hasCoaches && (
+        <div className="match-meta-row match-meta-officials">
+          {homeCoach && (
+            <Link to={`/entrenador/${homeCoach.id}`} className="match-meta-link">
+              DT: {homeCoach.name}
+            </Link>
+          )}
+          {awayCoach && (
+            <Link to={`/entrenador/${awayCoach.id}`} className="match-meta-link">
+              DT: {awayCoach.name}
+            </Link>
+          )}
+        </div>
       )}
     </div>
   );
@@ -339,7 +380,7 @@ export default function MatchDetail({ matchId, onBack }) {
 
           {currentTab === "resumen" && (
             <>
-              {detail.statistics && (
+              {detail.statistics?.length > 0 && (
                 <div className="team-section">
                   <h2 className="team-section-title">Estadísticas destacadas</h2>
                   <div className="match-stats-list">
@@ -349,8 +390,8 @@ export default function MatchDetail({ matchId, onBack }) {
                   </div>
                 </div>
               )}
-              {detail.events && <MatchEvents events={detail.events.slice(0, 5)} />}
-              {!detail.statistics && !detail.events && detail.status === "scheduled" && (
+              {detail.events?.length > 0 && <MatchEvents events={detail.events.slice(0, 5)} />}
+              {!detail.statistics?.length && !detail.events?.length && detail.status === "scheduled" && (
                 <p className="empty">
                   El resumen del partido va a estar disponible cuando arranque.
                 </p>
@@ -379,7 +420,7 @@ export default function MatchDetail({ matchId, onBack }) {
 
           {currentTab === "estadisticas" && (
             <>
-              {detail.statistics && (
+              {detail.statistics?.length > 0 && (
                 <div className="team-section">
                   <div className="match-stats-list">
                     {detail.statistics.map((row, i) => (

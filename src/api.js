@@ -66,3 +66,15 @@ export async function fetchPlayerDetail(playerId) {
 export async function fetchCompetitionDetail(leagueId) {
   return getJson(`/api/leagues/${leagueId}`);
 }
+
+export async function fetchRefereeDetail(refereeId) {
+  return getJson(`/api/referees/${refereeId}`);
+}
+
+export async function fetchManagerDetail(managerId) {
+  return getJson(`/api/managers/${managerId}`);
+}
+
+export async function fetchVenueDetail(venueId) {
+  return getJson(`/api/venues/${venueId}`);
+}

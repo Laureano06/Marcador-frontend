@@ -1394,17 +1394,51 @@ header {
   text-align: center;
 }
 
-/* --- Meta del partido: stage/round, clima, asistencia (MatchDetail) --- */
+/* --- Meta del partido: stage/round, clima, asistencia, árbitro,
+   estadio, DTs (MatchDetail) --- */
+.match-meta {
+  margin: 10px 0 4px;
+}
+
 .match-meta-row {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin: 10px 0 4px;
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-dim);
   text-align: center;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.match-meta-officials {
+  font-size: 10.5px;
+  color: var(--text-dimmer);
+}
+
+.match-meta-link {
+  color: var(--text-dim);
+  text-decoration: none;
+}
+
+.match-meta-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.referee-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
 }
 
 .match-meta-weather {
