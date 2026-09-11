@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Outlet, useNavigate, useMatch } from "react-router-dom";
+import { Outlet, useNavigate, useMatch, useLocation } from "react-router-dom";
 import { fetchDay } from "./api";
 import { toDateKey, addDays } from "./utils";
 import { useFavorites } from "./useFavorites";
@@ -8,11 +8,13 @@ import LeagueSidebar from "./components/LeagueSidebar";
 import SearchBar from "./components/SearchBar";
 import DateStrip from "./components/DateStrip";
 import { HamburgerIcon, ChevronLeftIcon, ChevronRightIcon, DownloadIcon } from "./components/icons";
+import { PageTransition } from "./motion";
 
 const POLL_MS = 60000;
 
 export default function Layout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeLeague, setActiveLeague] = useState(null);
   // Datos cacheados por el service worker (network-first) mientras el
@@ -103,6 +105,15 @@ export default function Layout() {
   const goHome = () => navigate(`/fecha/${toDateKey(new Date())}`);
   const openTeam = (id) => navigate(`/equipo/${id}`);
 
+  // Transición de página SOLO entre TIPOS de pantalla distintos (feed de
+  // un día -> ficha de equipo -> detalle de partido) — navegar entre
+  // fechas dentro del feed usa su propia animación de swipe/slide
+  // (DayFeedPage, pensada específicamente para eso); si esta transición
+  // también se disparara ahí, las dos animaciones se pisarían. Por eso
+  // toda "/fecha/*" comparte una sola key: para el feed, cambiar de
+  // fecha NO cuenta como "cambiar de página".
+  const pageKey = location.pathname.startsWith("/fecha/") ? "fecha" : location.pathname;
+
   return (
     <div className="app-shell">
       <a href="#main-content" className="skip-link">
@@ -189,17 +200,32 @@ export default function Layout() {
         </span>
 
         <main id="main-content">
-          <Outlet
-            context={{
-              matches,
-              matchesStatus,
-              staleMatches,
-              reloadMatches: () => load(feedDate),
-              activeLeague,
-              onClearLeagueFilter: () => setActiveLeague(null),
-              ...favorites,
-            }}
-          />
+          {/* Sin AnimatePresence a propósito: <Outlet> está conectado al
+              contexto de ruteo de React Router — si AnimatePresence
+              preserva el wrapper "saliente" para animar su salida, ese
+              Outlet sigue montado y se re-resuelve a la ruta NUEVA de
+              todos modos (confirmado en vivo: terminaba mostrando la
+              página nueva duplicada, pegada en opacity:0). La solución
+              correcta de raíz existe (pinnear el location con
+              <Routes location={...}>) pero exige reestructurar el
+              routing entero y arriesga romper el shell persistente
+              (sidebar/header perderían su estado en cada navegación).
+              Animar solo la ENTRADA (remount limpio con key={pageKey},
+              sin intentar preservar la salida) da la mayor parte del
+              pulido sin ese riesgo. */}
+          <PageTransition key={pageKey}>
+            <Outlet
+              context={{
+                matches,
+                matchesStatus,
+                staleMatches,
+                reloadMatches: () => load(feedDate),
+                activeLeague,
+                onClearLeagueFilter: () => setActiveLeague(null),
+                ...favorites,
+              }}
+            />
+          </PageTransition>
         </main>
       </div>
     </div>
