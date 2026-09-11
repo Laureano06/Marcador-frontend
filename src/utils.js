@@ -21,35 +21,72 @@ export function crestColor(abbr) {
   return `hsl(${hue}, 62%, 58%)`;
 }
 
+// Partidos está pensado en horario argentino de punta a punta (así lo
+// arma también el backend, ver APP_TIMEZONE en server.js) — un kickoff
+// tiene que verse en hora de Argentina sin importar en qué zona horaria
+// esté el dispositivo de quien mira. Antes esto dependía de la zona
+// horaria IMPLÍCITA del navegador (new Date() + los getters locales de
+// JS): alguien con el reloj/región del sistema mal configurado, o
+// mirando desde otro país, veía los horarios de los partidos corridos, y
+// "HOY" podía referirse al día equivocado cerca de la medianoche. Fijar
+// la zona acá saca esa dependencia del todo.
+const TIMEZONE = "America/Argentina/Buenos_Aires";
+
 const TIME_FMT = new Intl.DateTimeFormat("es-AR", {
   hour: "2-digit",
   minute: "2-digit",
+  timeZone: TIMEZONE,
 });
 
+// `isoString` es un INSTANTE real (el kickoff, en UTC tal como lo manda
+// la API) — se formatea fijado a hora de Argentina, no a la zona del
+// dispositivo.
 export function formatTime(isoString) {
   return TIME_FMT.format(new Date(isoString));
 }
 
-// "2026-08-15" a partir de un objeto Date, en horario LOCAL (no UTC) para
-// que el día que ve el usuario coincida con su reloj.
+const CALENDAR_FMT = new Intl.DateTimeFormat("en-CA", {
+  timeZone: TIMEZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+// "2026-08-15" correspondiente a un instante real (típicamente "ahora"),
+// tal como se vive en Argentina en este momento — es la ÚNICA función acá
+// que mira la hora real. Todo lo demás (addDays, labelForDate) es
+// aritmética de calendario pura sobre el string que esto devuelve, sin
+// volver a tocar la hora real ni la zona del dispositivo.
 export function toDateKey(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return CALENDAR_FMT.format(date);
 }
 
+// Aritmética de calendario pura: un dateKey no es un instante, es una
+// fecha de calendario ("este 15 de agosto"), así que sumar/restar días
+// se hace anclado a UTC (Date.UTC + getters UTC) — nunca con la hora
+// LOCAL del navegador. Si se usara la hora local acá, un dispositivo en
+// otra zona horaria podía cruzar la medianoche al ida-y-vuelta y correr
+// el resultado un día. Ancladando a UTC, el resultado es el mismo sin
+// importar dónde esté el dispositivo.
 export function addDays(dateKey, delta) {
   const [y, m, d] = dateKey.split("-").map(Number);
-  const date = new Date(y, m - 1, d);
-  date.setDate(date.getDate() + delta);
-  return toDateKey(date);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  date.setUTCDate(date.getUTCDate() + delta);
+  const yy = date.getUTCFullYear();
+  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(date.getUTCDate()).padStart(2, "0");
+  return `${yy}-${mm}-${dd}`;
 }
 
-const WEEKDAY_FMT = new Intl.DateTimeFormat("es-AR", { weekday: "short" });
+// timeZone: "UTC" a propósito: el dateKey ya es una fecha de calendario
+// pura anclada a UTC (ver addDays) — formatearla con la zona horaria del
+// dispositivo reintroduciría el mismo riesgo de correrse un día cerca de
+// la medianoche que addDays evita.
+const WEEKDAY_FMT = new Intl.DateTimeFormat("es-AR", { weekday: "short", timeZone: "UTC" });
 const DAYMONTH_FMT = new Intl.DateTimeFormat("es-AR", {
   day: "2-digit",
   month: "short",
+  timeZone: "UTC",
 });
 
 // Devuelve algo como "HOY", "MAÑANA", "AYER" o "MIÉ 19 AGO"
@@ -63,7 +100,7 @@ export function labelForDate(dateKey) {
   if (dateKey === yesterdayKey) return "AYER";
 
   const [y, m, d] = dateKey.split("-").map(Number);
-  const date = new Date(y, m - 1, d);
+  const date = new Date(Date.UTC(y, m - 1, d));
   const weekday = WEEKDAY_FMT.format(date).replace(".", "");
   const dayMonth = DAYMONTH_FMT.format(date).replace(".", "");
   return `${weekday} ${dayMonth}`.toUpperCase();

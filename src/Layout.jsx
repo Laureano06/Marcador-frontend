@@ -7,7 +7,6 @@ import { useInstallPrompt } from "./useInstallPrompt";
 import LeagueSidebar from "./components/LeagueSidebar";
 import SearchBar from "./components/SearchBar";
 import DateStrip from "./components/DateStrip";
-import { ManagerPromoBanner } from "./components/ManagerPromo";
 import { HamburgerIcon, ChevronLeftIcon, ChevronRightIcon, DownloadIcon } from "./components/icons";
 
 const POLL_MS = 60000;
@@ -175,10 +174,6 @@ export default function Layout() {
             </div>
           )}
         </header>
-
-        <div className="promo-banner-slot">
-          <ManagerPromoBanner />
-        </div>
 
         {!isOnline && (
           <div className="offline-banner" role="status">

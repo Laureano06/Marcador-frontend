@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { groupLeaguesByCategory, countryAbbr } from "../leagueCategories";
 import { crestColor } from "../utils";
 import { CloseIcon, ChevronDownIcon } from "./icons";
-import { ManagerPromoCard } from "./ManagerPromo";
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
@@ -168,8 +167,6 @@ export default function LeagueSidebar({
           </p>
         )}
       </div>
-
-      <ManagerPromoCard />
 
       {groups.length === 0 && matchesStatus === "loading" && (
         <p className="empty" style={{ padding: "0 16px" }}>
