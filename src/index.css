@@ -992,8 +992,18 @@ header {
 /* Quien prefiere menos movimiento tampoco necesita el shimmer corriendo
    sin parar — el skeleton sigue comunicando "esto está cargando" solo
    con su forma/color, sin la animación. */
+/* MotionConfig reducedMotion="user" (main.jsx) ya cubre todo lo animado
+   con Motion, pero estas son @keyframes de CSS plano — Motion no las ve.
+   fadeIn/slideIn* son solo opacity/transform (bajo riesgo vestibular) y
+   se desactivan igual por consistencia; el pulso del punto "en vivo" es
+   la única de estas tres que además queda expuesta más de 5s de forma
+   automática (WCAG 2.2.2), así que es la que más lo necesita. */
 @media (prefers-reduced-motion: reduce) {
-  .skeleton {
+  .skeleton,
+  .sidebar-backdrop.visible,
+  .feed-slide,
+  .status-badge.live .blip,
+  .live-dot {
     animation: none;
   }
 }
@@ -1137,6 +1147,42 @@ header {
   color: var(--text-dim);
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.04);
+}
+
+/* En un teléfono angosto, escudo (32px) + estrella (32px) + separadores
+   dejaban apenas ~14px para el NOMBRE del equipo — la información más
+   importante de la card, por delante hasta del propio resultado en la
+   jerarquía que pide este proyecto (Scores > Match status > Teams > ...).
+   Achicar un poco escudo/estrella/badge de hora en mobile le devuelve
+   al nombre un ancho real donde mostrar algo más que una letra. */
+@media (max-width: 480px) {
+  .side .crest {
+    width: 26px;
+    height: 26px;
+  }
+
+  .side .fav-btn {
+    min-width: 24px;
+    min-height: 24px;
+    padding: 2px;
+  }
+
+  .side-clickable {
+    gap: 6px;
+  }
+
+  .side {
+    gap: 2px;
+  }
+
+  .center {
+    min-width: 0;
+  }
+
+  .status-badge {
+    padding: 2px 5px;
+    letter-spacing: 0.3px;
+  }
 }
 
 .status-badge.live {
