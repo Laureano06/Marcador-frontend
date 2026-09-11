@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { fetchTeamProfile } from "../api";
 import { crestColor } from "../utils";
 import FavoriteButton from "./FavoriteButton";
+import PlayerFace from "./PlayerFace";
+import PlayerLink from "./PlayerLink";
 import { ChevronLeftIcon } from "./icons";
 import { useDocumentMeta } from "../useDocumentMeta";
 
@@ -135,9 +137,14 @@ export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorit
                   </div>
                   <div className="squad-list">
                     {players.map((p) => (
-                      <div key={p.id} className="squad-player">
+                      <PlayerLink
+                        key={p.id}
+                        playerId={p.id}
+                        className="squad-player"
+                        aria-label={`Ver perfil de ${p.name}`}
+                      >
                         <div className="squad-player-photo">
-                          {p.photo && <img src={p.photo} alt="" loading="lazy" />}
+                          <PlayerFace photo={p.photo} name={p.name} size="lg" />
                           {p.number != null && (
                             <span className="squad-player-number">{p.number}</span>
                           )}
@@ -146,7 +153,7 @@ export default function TeamDetail({ teamId, onBack, isFavorite, onToggleFavorit
                         {p.age != null && (
                           <div className="squad-player-age">{p.age} años</div>
                         )}
-                      </div>
+                      </PlayerLink>
                     ))}
                   </div>
                 </div>

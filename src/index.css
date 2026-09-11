@@ -1377,6 +1377,340 @@ header {
   text-align: center;
 }
 
+.prediction-disclaimer {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-dimmer);
+  text-align: center;
+}
+
+/* --- Meta del partido: stage/round, clima, asistencia (MatchDetail) --- */
+.match-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px 0 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.match-meta-weather {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* --- Tabs del match center --- */
+.match-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  margin: 16px 0;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.match-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.match-tab {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 8px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.match-tab:hover {
+  color: var(--text);
+  border-color: var(--text-dimmer);
+}
+
+.match-tab.active {
+  color: var(--accent-text);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* --- Línea de tiempo de eventos (MatchEvents) --- */
+.match-events-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.match-event-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.match-event-minute {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dimmer);
+  width: 32px;
+  flex-shrink: 0;
+}
+
+.match-event-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.match-event-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.match-event-player {
+  color: var(--text);
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.match-event-player:hover {
+  color: var(--accent);
+}
+
+.match-event-detail {
+  font-size: 11px;
+  color: var(--text-dimmer);
+}
+
+.match-event-away {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.match-event-away .match-event-body {
+  align-items: flex-end;
+}
+
+.match-event-period {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-dimmer);
+  background: var(--bg-card);
+  border-radius: 8px;
+  margin: 4px 0;
+}
+
+.match-event-period-score {
+  color: var(--text);
+}
+
+/* --- H2H (MatchH2H) --- */
+.h2h-summary {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+  margin: 12px 0;
+}
+
+.h2h-summary-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.h2h-summary-value {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.h2h-summary-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  max-width: 90px;
+}
+
+.h2h-goals {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+}
+
+.h2h-recent-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.h2h-recent-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 4px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12.5px;
+}
+
+.h2h-recent-date {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-dimmer);
+  flex-shrink: 0;
+}
+
+.h2h-recent-teams {
+  color: var(--text-dim);
+}
+
+.h2h-recent-teams strong {
+  color: var(--text);
+}
+
+/* --- xG / shotmap (MatchShotmap) --- */
+.xg-estimated-tag {
+  margin-left: 8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dimmer);
+  background: var(--bg-card);
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+.xg-total-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 18px;
+}
+
+.xg-total-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.shotmap-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.shotmap-column-title {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-dimmer);
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shot-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shot-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 2px;
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+}
+
+.shot-row-goal {
+  background: rgba(80, 200, 120, 0.08);
+  border-radius: 6px;
+}
+
+.shot-minute {
+  font-family: var(--font-mono);
+  color: var(--text-dimmer);
+  width: 30px;
+  flex-shrink: 0;
+}
+
+.shot-player {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.shot-player:hover {
+  color: var(--accent);
+}
+
+.shot-xg {
+  font-family: var(--font-mono);
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.shot-result {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.shot-result-goal {
+  color: #50c878;
+}
+
+.shot-result-miss,
+.shot-result-save,
+.shot-result-block {
+  color: var(--text-dimmer);
+}
+
+@media (max-width: 480px) {
+  .shotmap-columns {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
 .empty,
 .error-banner {
   font-family: var(--font-mono);
@@ -1511,7 +1845,8 @@ footer {
    Ficha de equipo (TeamDetail)
    ============================================================ */
 
-.team-detail {
+.team-detail,
+.player-detail {
   padding: 0 18px 60px;
 }
 
@@ -1590,6 +1925,146 @@ footer {
   font-size: 11.5px;
   color: var(--text-dim);
   margin-top: 4px;
+}
+
+/* --- Ficha de jugador (PlayerDetail) --- */
+.player-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: -16px -18px 24px;
+  padding: 24px 18px 20px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--line);
+}
+
+.player-header-info {
+  min-width: 0;
+}
+
+.player-header-info h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--text);
+}
+
+.player-header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+.player-header-team {
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+.player-header-team:hover {
+  text-decoration: underline;
+}
+
+.player-availability {
+  display: inline-block;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 3px 9px;
+  border-radius: 10px;
+}
+
+.player-availability-injured {
+  color: #d9463d;
+  background: rgba(217, 70, 61, 0.12);
+}
+
+.player-availability-suspended {
+  color: #e8c547;
+  background: rgba(232, 197, 71, 0.12);
+}
+
+.player-availability-doubtful {
+  color: var(--text-dim);
+  background: var(--bg);
+}
+
+.player-facts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.player-fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.player-fact span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dimmer);
+}
+
+.player-fact strong {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.player-stats-sample {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-dimmer);
+  font-weight: 400;
+  text-transform: none;
+}
+
+.player-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 10px;
+}
+
+.player-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.player-stat-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--text);
+}
+
+.player-stat-label {
+  font-size: 10.5px;
+  color: var(--text-dim);
 }
 
 .team-section {
@@ -1732,29 +2207,43 @@ footer {
 }
 
 .pitch-player {
-  position: absolute;
-  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 60px;
+}
+
+.pitch-player-link {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  width: 58px;
+  width: 100%;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
-.pitch-player-dot {
-  width: 26px;
-  height: 26px;
+.pitch-player-face-wrap {
+  position: relative;
+}
+
+.pitch-player-number {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 9px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: var(--bg-card);
-  border: 2px solid var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 10.5px;
-  color: var(--text);
-  flex-shrink: 0;
+  box-shadow: 0 0 0 2px var(--bg-card);
 }
 
 .pitch-player-name {
@@ -1767,7 +2256,57 @@ footer {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 58px;
+  max-width: 60px;
+}
+
+/* --- Badges de eventos sobre un jugador (gol/tarjeta/cambio) --- */
+.player-badges {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  display: flex;
+  gap: 2px;
+}
+
+.player-badge {
+  font-size: 9px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+}
+
+.player-badge-yellow,
+.player-badge-red {
+  width: 8px;
+  height: 11px;
+  border-radius: 1.5px;
+}
+
+.player-badge-yellow {
+  background: #e8c547;
+}
+
+.player-badge-red {
+  background: #d9463d;
+}
+
+.player-badge-sub-out {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-dimmer);
+  background: var(--bg-card);
+  border-radius: 4px;
+  padding: 0 3px;
+}
+
+.player-badge-sub-in {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-left: auto;
 }
 
 .lineup-fallback-list {
@@ -1782,6 +2321,9 @@ footer {
   padding: 5px 0;
   border-bottom: 1px solid var(--line);
   font-size: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
 .lineup-player-number {
@@ -1808,6 +2350,114 @@ footer {
   flex-shrink: 0;
 }
 
+/* --- Banco de suplentes / bajas (LineupPitch) --- */
+.lineup-bench,
+.lineup-unavailable {
+  margin-top: 18px;
+}
+
+.lineup-bench-title {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dimmer);
+  margin-bottom: 8px;
+}
+
+.lineup-bench-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lineup-bench-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease;
+}
+
+.lineup-bench-player:hover {
+  background: var(--bg-card-hover);
+}
+
+.lineup-bench-info {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lineup-bench-number {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dimmer);
+  flex-shrink: 0;
+}
+
+.lineup-bench-name {
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lineup-unavailable ul {
+  list-style: none;
+}
+
+.unavailable-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 8px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.unavailable-name {
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.unavailable-name:hover {
+  color: var(--accent);
+}
+
+.unavailable-status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.unavailable-injured .unavailable-status {
+  color: #d9463d;
+  background: rgba(217, 70, 61, 0.12);
+}
+
+.unavailable-suspended .unavailable-status {
+  color: #e8c547;
+  background: rgba(232, 197, 71, 0.12);
+}
+
+.unavailable-doubtful .unavailable-status {
+  color: var(--text-dim);
+  background: var(--bg-card);
+}
+
 /* --- Plantel --- */
 .squad-position-label {
   font-family: var(--font-mono);
@@ -1829,6 +2479,9 @@ footer {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
 .squad-player-photo {
@@ -1848,10 +2501,69 @@ footer {
   transform: scale(1.05);
 }
 
-.squad-player-photo img {
+.squad-player-photo .player-face {
+  width: 100%;
+  height: 100%;
+  font-size: 16px;
+}
+
+.squad-player-photo .player-face img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* --- PlayerFace: foto de jugador con respaldo de iniciales, mismo
+   patrón que el escudo de equipo. Reusado en cancha táctica, banco,
+   plantel, eventos del partido y la ficha de jugador — una sola
+   identidad visual en toda la app. --- */
+.player-face {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: #141416;
+}
+
+.player-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.player-face-sm {
+  width: 28px;
+  height: 28px;
+  font-size: 10px;
+}
+
+.player-face-md {
+  width: 40px;
+  height: 40px;
+  font-size: 12px;
+  background: var(--bg-card);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.player-face-lg {
+  width: 56px;
+  height: 56px;
+  font-size: 16px;
+}
+
+.player-face-xl {
+  width: 88px;
+  height: 88px;
+  font-size: 24px;
+}
+
+.player-face-fallback {
+  color: #141416;
 }
 
 .squad-player-number {

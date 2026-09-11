@@ -4,6 +4,7 @@ import Layout from "./Layout";
 import DayFeedPage from "./pages/DayFeedPage";
 import TeamDetailPage from "./pages/TeamDetailPage";
 import MatchDetailPage from "./pages/MatchDetailPage";
+import PlayerDetailPage from "./pages/PlayerDetailPage";
 
 const todayKey = toDateKey(new Date());
 
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="fecha/:date" element={<DayFeedPage />} />
         <Route path="equipo/:id" element={<TeamDetailPage />} />
         <Route path="partido/:id" element={<MatchDetailPage />} />
+        <Route path="jugador/:id" element={<PlayerDetailPage />} />
         <Route path="*" element={<Navigate to={`/fecha/${todayKey}`} replace />} />
       </Route>
     </Routes>

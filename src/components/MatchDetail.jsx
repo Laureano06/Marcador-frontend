@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { fetchMatchDetail } from "../api";
 import { crestColor, liveMinuteLabel } from "../utils";
 import LineupPitch from "./LineupPitch";
+import MatchEvents from "./MatchEvents";
+import MatchH2H from "./MatchH2H";
+import MatchShotmap from "./MatchShotmap";
 import { ChevronLeftIcon } from "./icons";
 import { useDocumentMeta } from "../useDocumentMeta";
 import { useStructuredData } from "../useStructuredData";
@@ -89,7 +92,7 @@ function StatRow({ label, home, away }) {
 function Predictions({ predictions, home, away }) {
   return (
     <div className="team-section">
-      <h2 className="team-section-title">Pronóstico</h2>
+      <h2 className="team-section-title">Predicción estadística</h2>
       <div className="prob">
         <div className="prob-bar">
           <div className="home" style={{ width: `${predictions.home}%` }} />
@@ -107,16 +110,54 @@ function Predictions({ predictions, home, away }) {
         </div>
       </div>
       {predictions.advice && <p className="prediction-advice">{predictions.advice}</p>}
+      <p className="prediction-disclaimer">
+        Modelo estadístico, no es una garantía de resultado ni un consejo de apuesta.
+      </p>
+    </div>
+  );
+}
+
+const WEATHER_ICON = { clear: "☀️", cloudy: "☁️", rain: "🌧️", snow: "❄️", extreme: "⛈️" };
+
+function MatchMeta({ detail }) {
+  const parts = [];
+  if (detail.roundLabel) parts.push(detail.roundLabel);
+  else if (detail.stageName) parts.push(detail.stageName);
+  if (detail.isDerby) parts.push("Clásico");
+  if (detail.attendance) parts.push(`${detail.attendance.toLocaleString("es-AR")} espectadores`);
+
+  if (parts.length === 0 && !detail.weather) return null;
+
+  return (
+    <div className="match-meta-row">
+      {parts.length > 0 && <span className="match-meta-text">{parts.join(" · ")}</span>}
+      {detail.weather && (detail.weather.temperatureC != null || detail.weather.description) && (
+        <span className="match-meta-weather">
+          {WEATHER_ICON[detail.weather.description] || ""}
+          {detail.weather.temperatureC != null ? ` ${Math.round(detail.weather.temperatureC)}°C` : ""}
+        </span>
+      )}
     </div>
   );
 }
 
 const LIVE_POLL_MS = 30000; // alineado con el TTL de detalle en vivo del backend (server.js)
 
+const TABS = [
+  { key: "resumen", label: "Resumen" },
+  { key: "alineaciones", label: "Alineaciones" },
+  { key: "estadisticas", label: "Estadísticas" },
+  { key: "eventos", label: "Eventos" },
+  { key: "xg", label: "xG" },
+  { key: "h2h", label: "H2H" },
+  { key: "pronostico", label: "Pronóstico" },
+];
+
 export default function MatchDetail({ matchId, onBack }) {
   const [detail, setDetail] = useState(null);
   const [status, setStatus] = useState("loading"); // loading | ok | error
   const [errorMessage, setErrorMessage] = useState("");
+  const [activeTab, setActiveTab] = useState("resumen");
 
   // isRefresh=true es un refresh de fondo (polling de un partido en vivo):
   // no vuelve a "loading" ni borra el detalle ya mostrado, así no hay
@@ -151,6 +192,10 @@ export default function MatchDetail({ matchId, onBack }) {
     load();
   }, [load]);
 
+  useEffect(() => {
+    setActiveTab("resumen"); // otro partido -> volvemos a la pestaña por defecto
+  }, [matchId]);
+
   // Antes esta pantalla no se actualizaba sola nunca — para ver el
   // minuto o un gol nuevo había que volver atrás y entrar de nuevo. Con
   // la cuota de BSD (7.500/día) actualizar cada 30s es asequible incluso
@@ -184,6 +229,36 @@ export default function MatchDetail({ matchId, onBack }) {
         }
       : null
   );
+
+  // Nombre de cada jugador por id, para poder mostrar el nombre en la
+  // lista de remates (el shotmap solo trae el id) — se arma solo cuando
+  // hay alineación, así el shotmap sigue funcionando (con "Jugador"
+  // genérico) aunque la alineación todavía no esté confirmada.
+  const playersById = useMemo(() => {
+    if (!detail?.lineups) return null;
+    const map = new Map();
+    for (const side of [detail.lineups.home, detail.lineups.away]) {
+      for (const p of [...(side?.starters || []), ...(side?.substitutes || [])]) {
+        map.set(p.id, p.name);
+      }
+    }
+    return map;
+  }, [detail?.lineups]);
+
+  const availableTabs = detail
+    ? TABS.filter((t) => {
+        if (t.key === "resumen") return true;
+        if (t.key === "alineaciones") return !!detail.lineups;
+        if (t.key === "estadisticas") return !!detail.statistics?.length;
+        if (t.key === "eventos") return !!detail.events?.length;
+        if (t.key === "xg") return !!detail.xg || !!detail.shotmap?.length;
+        if (t.key === "h2h") return !!detail.h2h;
+        if (t.key === "pronostico") return !!detail.predictions;
+        return false;
+      })
+    : [];
+
+  const currentTab = availableTabs.some((t) => t.key === activeTab) ? activeTab : "resumen";
 
   return (
     <div className="match-detail">
@@ -242,13 +317,66 @@ export default function MatchDetail({ matchId, onBack }) {
             <TeamHeader team={detail.away} side="away" />
           </div>
 
-          {detail.predictions && (
-            <Predictions predictions={detail.predictions} home={detail.home} away={detail.away} />
+          <MatchMeta detail={detail} />
+
+          {availableTabs.length > 1 && (
+            <div className="match-tabs" role="tablist">
+              {availableTabs.map((t) => (
+                <button
+                  key={t.key}
+                  role="tab"
+                  aria-selected={currentTab === t.key}
+                  className={"match-tab" + (currentTab === t.key ? " active" : "")}
+                  onClick={() => setActiveTab(t.key)}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
           )}
 
-          {detail.statistics && (
+          {currentTab === "resumen" && (
+            <>
+              {detail.statistics && (
+                <div className="team-section">
+                  <h2 className="team-section-title">Estadísticas destacadas</h2>
+                  <div className="match-stats-list">
+                    {detail.statistics.slice(0, 5).map((row, i) => (
+                      <StatRow key={i} label={row.label} home={row.home} away={row.away} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {detail.events && <MatchEvents events={detail.events.slice(0, 5)} />}
+              {!detail.statistics && !detail.events && detail.status === "scheduled" && (
+                <p className="empty">
+                  El resumen del partido va a estar disponible cuando arranque.
+                </p>
+              )}
+            </>
+          )}
+
+          {currentTab === "alineaciones" && (
+            <>
+              {detail.lineups ? (
+                <LineupPitch
+                  home={detail.lineups.home}
+                  away={detail.lineups.away}
+                  events={detail.events}
+                  unavailablePlayers={detail.unavailablePlayers}
+                />
+              ) : (
+                <p className="empty">
+                  {detail.status === "scheduled"
+                    ? "Alineaciones todavía no confirmadas."
+                    : "No hay datos de alineación para este partido."}
+                </p>
+              )}
+            </>
+          )}
+
+          {currentTab === "estadisticas" && detail.statistics && (
             <div className="team-section">
-              <h2 className="team-section-title">Estadísticas</h2>
               <div className="match-stats-list">
                 {detail.statistics.map((row, i) => (
                   <StatRow key={i} label={row.label} home={row.home} away={row.away} />
@@ -257,30 +385,24 @@ export default function MatchDetail({ matchId, onBack }) {
             </div>
           )}
 
-          {detail.lineups && (
-            <div className="team-section">
-              <h2 className="team-section-title">
-                {detail.lineupsAreProbable
-                  ? "Alineación probable"
-                  : "Alineación"}
-              </h2>
-              <LineupPitch home={detail.lineups.home} away={detail.lineups.away} />
-            </div>
+          {currentTab === "eventos" && <MatchEvents events={detail.events} />}
+
+          {currentTab === "xg" && (
+            <MatchShotmap
+              xg={detail.xg}
+              shotmap={detail.shotmap}
+              homeName={detail.home?.name}
+              awayName={detail.away?.name}
+              playersById={playersById}
+            />
           )}
 
-          {!detail.statistics && detail.status === "scheduled" && (
-            <p className="empty">
-              Las estadísticas van a estar disponibles cuando arranque el
-              partido.
-            </p>
+          {currentTab === "h2h" && (
+            <MatchH2H h2h={detail.h2h} homeName={detail.home?.name} awayName={detail.away?.name} />
           )}
 
-          {!detail.lineups && (
-            <p className="empty">
-              {detail.status === "scheduled"
-                ? "Todavía no hay una alineación probable disponible."
-                : "No hay datos de alineación para este partido."}
-            </p>
+          {currentTab === "pronostico" && detail.predictions && (
+            <Predictions predictions={detail.predictions} home={detail.home} away={detail.away} />
           )}
         </>
       )}
