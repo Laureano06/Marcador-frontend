@@ -1048,6 +1048,14 @@ header {
   font-size: 11px;
   flex-shrink: 0;
   overflow: hidden;
+  transition: transform 0.15s ease;
+}
+
+/* El escudo es la parte "de marca" del equipo, la que más vale la
+   pena resaltar al pasar el mouse — un scale sutil en vez de tocar
+   toda la fila (eso ya lo cubre el hover de la card entera). */
+.side-clickable:hover .crest {
+  transform: scale(1.08);
 }
 
 /* Escudo real: fondo blanco fijo (los escudos suelen tener partes
