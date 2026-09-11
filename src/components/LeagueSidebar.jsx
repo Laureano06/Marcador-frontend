@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { groupLeaguesByCategory, countryAbbr } from "../leagueCategories";
 import { crestColor } from "../utils";
 import { CloseIcon, ChevronDownIcon } from "./icons";
+import { DURATION, EASE_OUT } from "../motion";
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
@@ -196,38 +198,49 @@ export default function LeagueSidebar({
               <span>{category}</span>
               <ChevronDownIcon className={"chevron" + (isCollapsed ? "" : " open")} />
             </button>
-            {!isCollapsed && (
-              <ul>
-                {leagues.map((l) => (
-                  <li key={l.name}>
-                    <button
-                      className={
-                        "league-sidebar-item" + (l.name === activeLeague ? " active" : "")
-                      }
-                      onClick={() => handleSelect(l.name)}
-                    >
-                      {/* No es una bandera real: DESIGN.md prohíbe
-                          emoji/glifos como ícono, y muchas banderas son
-                          casi idénticas entre sí (Chad/Rumania). Un chip
-                          circular con el mismo hash de color que ya usan
-                          los escudos de respaldo da una pista de país sin
-                          ninguna de las dos ambigüedades. "World" (copas
-                          internacionales) no tiene país real, se omite. */}
-                      {l.country && l.country !== "World" && (
-                        <span
-                          className="country-chip"
-                          style={{ background: crestColor(l.country) }}
-                          aria-hidden="true"
+            <AnimatePresence initial={false}>
+              {!isCollapsed && (
+                <motion.div
+                  key="content"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: DURATION.fast, ease: EASE_OUT }}
+                  style={{ overflow: "hidden" }}
+                >
+                  <ul>
+                    {leagues.map((l) => (
+                      <li key={l.name}>
+                        <button
+                          className={
+                            "league-sidebar-item" + (l.name === activeLeague ? " active" : "")
+                          }
+                          onClick={() => handleSelect(l.name)}
                         >
-                          {countryAbbr(l.country)}
-                        </span>
-                      )}
-                      {l.name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+                          {/* No es una bandera real: DESIGN.md prohíbe
+                              emoji/glifos como ícono, y muchas banderas son
+                              casi idénticas entre sí (Chad/Rumania). Un chip
+                              circular con el mismo hash de color que ya usan
+                              los escudos de respaldo da una pista de país sin
+                              ninguna de las dos ambigüedades. "World" (copas
+                              internacionales) no tiene país real, se omite. */}
+                          {l.country && l.country !== "World" && (
+                            <span
+                              className="country-chip"
+                              style={{ background: crestColor(l.country) }}
+                              aria-hidden="true"
+                            >
+                              {countryAbbr(l.country)}
+                            </span>
+                          )}
+                          {l.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         );
       })}
