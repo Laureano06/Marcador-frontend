@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { crestColor } from "../utils";
 import { buildRegionTree } from "../competitions/regionTree";
 import { detectUserCountry } from "../competitions/userCountry";
-import { CloseIcon, ChevronDownIcon, SearchIcon } from "./icons";
+import { CloseIcon, ChevronDownIcon, SearchIcon, StarIcon } from "./icons";
 import { DURATION, EASE_OUT } from "../motion";
 
 const FOCUSABLE_SELECTOR =
@@ -96,12 +96,7 @@ function CountryAccordion({ node, isOpen, onToggle, activeLeague, onSelect }) {
   return (
     <div className="sidebar-country">
       <button className="country-header" onClick={onToggle} aria-expanded={isOpen}>
-        <span className="country-header-label">
-          <span className="country-flag" aria-hidden="true">
-            {node.icon}
-          </span>
-          {node.name}
-        </span>
+        <span className="country-header-label">{node.name}</span>
         <ChevronDownIcon className={"chevron" + (isOpen ? " open" : "")} />
       </button>
       <AnimatePresence initial={false}>
@@ -143,12 +138,7 @@ function RegionAccordion({ region, isOpen, onToggleRegion, openCountryId, onTogg
         onClick={onToggleRegion}
         aria-expanded={isOpen}
       >
-        <span className="region-header-label">
-          <span className="region-icon" aria-hidden="true">
-            {region.icon}
-          </span>
-          {region.name}
-        </span>
+        <span className="region-header-label">{region.name}</span>
         <ChevronDownIcon className={"chevron" + (isOpen ? " open" : "")} />
       </button>
       <AnimatePresence initial={false}>
@@ -378,7 +368,9 @@ export default function LeagueSidebar({
       </div>
 
       <div className="sidebar-favorites">
-        <span className="region-header-static">★ Mis competiciones</span>
+        <span className="region-header-static">
+          <StarIcon active className="favorites-star" /> Mis competiciones
+        </span>
         {hasFavorites ? (
           <ul>
             {favoriteLeagues.map((name) => (
@@ -448,7 +440,6 @@ export default function LeagueSidebar({
               region={{
                 id: "local",
                 name: tree.localShortcut.name,
-                icon: tree.localShortcut.icon,
                 directCompetitions: tree.localShortcut.competitions,
                 countries: [],
                 organizations: [],

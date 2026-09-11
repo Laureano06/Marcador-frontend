@@ -16,20 +16,19 @@
 // competencia" y "categoría del sidebar viejo" son un solo concepto, no
 // dos mapas separados que puedan desincronizarse.
 export const REGION_META = [
-  { id: "argentina-local", name: "Argentina", icon: "🇦🇷", isLocalShortcut: true },
-  { id: "south-america", name: "Sudamérica", icon: "🌎", org: "CONMEBOL" },
-  { id: "europe", name: "Europa", icon: "🌍", org: "UEFA" },
-  { id: "north-america", name: "Norteamérica", icon: "🌎", org: "CONCACAF" },
-  { id: "international", name: "Internacional", icon: "🌐" },
-  { id: "asia", name: "Asia", icon: "🌏", org: "AFC" },
-  { id: "africa", name: "África", icon: "🌍", org: "CAF" },
-  { id: "oceania", name: "Oceanía", icon: "🌏", org: "OFC" },
+  { id: "argentina-local", name: "Argentina", isLocalShortcut: true },
+  { id: "south-america", name: "Sudamérica", org: "CONMEBOL" },
+  { id: "europe", name: "Europa", org: "UEFA" },
+  { id: "north-america", name: "Norteamérica", org: "CONCACAF" },
+  { id: "international", name: "Internacional" },
+  { id: "asia", name: "Asia", org: "AFC" },
+  { id: "africa", name: "África", org: "CAF" },
+  { id: "oceania", name: "Oceanía", org: "OFC" },
 ];
 
-// País tal como lo devuelve BSD -> {region, iso2}. iso2 sirve para dos
-// cosas: la bandera del sidebar (emoji derivado del código) y comparar
-// contra el país del usuario (userCountry, ver userCountry.js) sin
-// necesidad de un segundo mapa en sentido inverso.
+// País tal como lo devuelve BSD -> {region, iso2}. iso2 sirve para
+// comparar contra el país del usuario (userCountry, ver userCountry.js)
+// sin necesidad de un segundo mapa en sentido inverso.
 export const COUNTRY_META = {
   // Continentes que BSD manda directamente como "país" de la competencia
   // (ver dataSource.js) — sin iso2 propio, van a la región tal cual.

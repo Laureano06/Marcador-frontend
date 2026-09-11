@@ -312,7 +312,9 @@ body {
 }
 
 .region-header-static {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--font-mono);
   font-size: 11.5px;
   font-weight: 700;
@@ -320,6 +322,12 @@ body {
   text-transform: uppercase;
   color: var(--text-dim);
   padding: 12px 14px 8px;
+}
+
+.favorites-star {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--accent);
 }
 
 .sidebar-favorites-empty {
@@ -401,12 +409,6 @@ body {
   min-width: 0;
 }
 
-.region-icon {
-  flex-shrink: 0;
-  font-size: 13px;
-  line-height: 1;
-}
-
 /* Un país o una organización continental (CONMEBOL, UEFA...) dentro de
    una región ya abierta — un escalón más chico y menos gritado que el
    header de región (sin mayúsculas, sin letter-spacing), para que la
@@ -454,12 +456,6 @@ body {
   align-items: center;
   gap: 7px;
   min-width: 0;
-}
-
-.country-flag {
-  flex-shrink: 0;
-  font-size: 13px;
-  line-height: 1;
 }
 
 /* Las competencias que cuelgan de un país/organización van un escalón

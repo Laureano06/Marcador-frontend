@@ -14,11 +14,6 @@ import { categoryForLeague } from "../leagueCategories";
 
 const REGION_ORDER = REGION_META.filter((r) => !r.isLocalShortcut);
 
-function flagEmoji(iso2) {
-  if (!iso2) return "🏳️";
-  return String.fromCodePoint(...[...iso2.toUpperCase()].map((c) => 127397 + c.charCodeAt(0)));
-}
-
 function byName(a, b) {
   return a.name.localeCompare(b.name);
 }
@@ -39,9 +34,9 @@ function dedupCompetitions(matches) {
 
 /**
  * buildRegionTree(matches, userCountryIso2) -> {
- *   localShortcut: { id, name, icon, competitions } | null,
- *   regions: [{ id, name, icon, countries: [{id,name,icon,competitions}],
- *               organizations: [{id,name,icon,competitions}],
+ *   localShortcut: { id, name, competitions } | null,
+ *   regions: [{ id, name, countries: [{id,name,competitions}],
+ *               organizations: [{id,name,competitions}],
  *               directCompetitions: [...] }]
  * }
  */
@@ -77,7 +72,7 @@ export function buildRegionTree(matches, userCountryIso2) {
     }
 
     if (!bucket.countries.has(meta.iso2)) {
-      bucket.countries.set(meta.iso2, { id: meta.iso2, name: comp.country, icon: flagEmoji(meta.iso2), competitions: [] });
+      bucket.countries.set(meta.iso2, { id: meta.iso2, name: comp.country, competitions: [] });
     }
     bucket.countries.get(meta.iso2).competitions.push(comp);
   }
@@ -88,12 +83,11 @@ export function buildRegionTree(matches, userCountryIso2) {
       .map((c) => ({ ...c, competitions: c.competitions.sort(byName) }))
       .sort(byName);
     const organizations = bucket.org.length
-      ? [{ id: `org:${meta.org}`, name: meta.org, icon: "🏆", competitions: bucket.org.sort(byName) }]
+      ? [{ id: `org:${meta.org}`, name: meta.org, competitions: bucket.org.sort(byName) }]
       : [];
     return {
       id: meta.id,
       name: meta.name,
-      icon: meta.icon,
       countries,
       organizations,
       directCompetitions: bucket.direct.sort(byName),
@@ -104,7 +98,6 @@ export function buildRegionTree(matches, userCountryIso2) {
     regions.push({
       id: "other",
       name: "Otros",
-      icon: "🏳️",
       countries: [],
       organizations: [],
       directCompetitions: unclassified.sort(byName),
@@ -121,7 +114,7 @@ export function buildRegionTree(matches, userCountryIso2) {
     for (const region of regions) {
       const country = region.countries.find((c) => c.id === userCountryIso2);
       if (country) {
-        localShortcut = { id: `local:${country.id}`, name: country.name, icon: country.icon, competitions: country.competitions };
+        localShortcut = { id: `local:${country.id}`, name: country.name, competitions: country.competitions };
         break;
       }
     }
