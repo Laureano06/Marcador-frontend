@@ -1,12 +1,35 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { groupLeaguesByCategory, countryAbbr } from "../leagueCategories";
 import { crestColor } from "../utils";
-import { CloseIcon, ChevronDownIcon } from "./icons";
+import { buildRegionTree } from "../competitions/regionTree";
+import { detectUserCountry } from "../competitions/userCountry";
+import { CloseIcon, ChevronDownIcon, SearchIcon } from "./icons";
 import { DURATION, EASE_OUT } from "../motion";
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
+
+const SIDEBAR_STATE_KEY = "partidos:sidebar-state";
+
+// SYSTEM B del pedido (ver src/competitions/rankCompetitions.js para el
+// porqué de la separación): esta navegación es ESTRUCTURAL, no dinámica.
+// Nunca se reordena por partidos en vivo — Región -> País/Organización ->
+// Competencia, siempre en el mismo orden, para que aprender "dónde está
+// Europa" sirva de una vez y para siempre.
+
+function loadSidebarState() {
+  try {
+    const raw = localStorage.getItem(SIDEBAR_STATE_KEY);
+    if (!raw) return { openRegionId: null, openCountryId: null };
+    const parsed = JSON.parse(raw);
+    return {
+      openRegionId: typeof parsed.openRegionId === "string" ? parsed.openRegionId : null,
+      openCountryId: typeof parsed.openCountryId === "string" ? parsed.openCountryId : null,
+    };
+  } catch {
+    return { openRegionId: null, openCountryId: null };
+  }
+}
 
 // El feed del día solo trae los partidos de HOY — un equipo favorito que
 // hoy no juega no tiene nombre/escudo para mostrar acá (la API no nos da
@@ -50,6 +73,155 @@ function FavoriteTeamRow({ team, onSelectTeam, onClose }) {
       </button>
     </li>
   );
+}
+
+function CompetitionRow({ competition, isActive, onSelect }) {
+  return (
+    <li>
+      <button
+        className={"league-sidebar-item competition-row" + (isActive ? " active" : "")}
+        onClick={() => onSelect(competition.name)}
+      >
+        {isActive && <span className="active-dot" aria-hidden="true" />}
+        {competition.name}
+      </button>
+    </li>
+  );
+}
+
+// Un nodo "hoja de segundo nivel": un país o una organización continental
+// (CONMEBOL, UEFA...) dentro de una región ya abierta. Expande a una
+// lista plana de competencias — un país nunca tiene un tercer nivel.
+function CountryAccordion({ node, isOpen, onToggle, activeLeague, onSelect }) {
+  return (
+    <div className="sidebar-country">
+      <button className="country-header" onClick={onToggle} aria-expanded={isOpen}>
+        <span className="country-header-label">
+          <span className="country-flag" aria-hidden="true">
+            {node.icon}
+          </span>
+          {node.name}
+        </span>
+        <ChevronDownIcon className={"chevron" + (isOpen ? " open" : "")} />
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0, y: -4 }}
+            animate={{ height: "auto", opacity: 1, y: 0 }}
+            exit={{ height: 0, opacity: 0, y: -4 }}
+            transition={{ duration: DURATION.normal, ease: EASE_OUT }}
+            style={{ overflow: "hidden" }}
+          >
+            <ul className="sidebar-competitions">
+              {node.competitions.map((c) => (
+                <CompetitionRow
+                  key={c.id ?? c.name}
+                  competition={c}
+                  isActive={c.name === activeLeague}
+                  onSelect={onSelect}
+                />
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// Una región/continente (o el atajo local del país del usuario, que usa
+// este mismo componente — estructuralmente es lo mismo: un encabezado que
+// expande a países/organizaciones/competencias).
+function RegionAccordion({ region, isOpen, onToggleRegion, openCountryId, onToggleCountry, activeLeague, onSelect }) {
+  const hasChildren = region.countries.length > 0 || region.organizations.length > 0;
+  return (
+    <div className="sidebar-region">
+      <button
+        className="region-header"
+        onClick={onToggleRegion}
+        aria-expanded={isOpen}
+      >
+        <span className="region-header-label">
+          <span className="region-icon" aria-hidden="true">
+            {region.icon}
+          </span>
+          {region.name}
+        </span>
+        <ChevronDownIcon className={"chevron" + (isOpen ? " open" : "")} />
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0, y: -4 }}
+            animate={{ height: "auto", opacity: 1, y: 0 }}
+            exit={{ height: 0, opacity: 0, y: -4 }}
+            transition={{ duration: DURATION.normal, ease: EASE_OUT }}
+            style={{ overflow: "hidden" }}
+          >
+            <div className="sidebar-region-body">
+              {region.directCompetitions.length > 0 && (
+                <ul className="sidebar-competitions">
+                  {region.directCompetitions.map((c) => (
+                    <CompetitionRow
+                      key={c.id ?? c.name}
+                      competition={c}
+                      isActive={c.name === activeLeague}
+                      onSelect={onSelect}
+                    />
+                  ))}
+                </ul>
+              )}
+              {hasChildren && (
+                <div className="sidebar-countries">
+                  {region.countries.map((country) => (
+                    <CountryAccordion
+                      key={country.id}
+                      node={country}
+                      isOpen={openCountryId === country.id}
+                      onToggle={() => onToggleCountry(country.id)}
+                      activeLeague={activeLeague}
+                      onSelect={onSelect}
+                    />
+                  ))}
+                  {region.organizations.map((org) => (
+                    <CountryAccordion
+                      key={org.id}
+                      node={org}
+                      isOpen={openCountryId === org.id}
+                      onToggle={() => onToggleCountry(org.id)}
+                      activeLeague={activeLeague}
+                      onSelect={onSelect}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// Resultados de búsqueda: lista plana con la región/país como pista de
+// contexto — sin esto, buscar "champ" y ver dos filas idénticas
+// ("Championship"/"Champions League") sin más info no ayuda a distinguir
+// cuál es cuál antes de tocarlas.
+function flattenCompetitions(tree) {
+  const all = [];
+  for (const region of tree.regions) {
+    for (const c of region.directCompetitions) all.push({ ...c, context: region.name });
+    for (const country of region.countries) {
+      for (const c of country.competitions) all.push({ ...c, context: country.name });
+    }
+    for (const org of region.organizations) {
+      for (const c of org.competitions) all.push({ ...c, context: org.name });
+    }
+  }
+  return all;
 }
 
 export default function LeagueSidebar({
@@ -105,21 +277,65 @@ export default function LeagueSidebar({
     };
   }, [open, onClose]);
 
-  // Qué categorías están COLAPSADAS (no las que están abiertas) — así
-  // todas arrancan expandidas por default sin tener que inicializar la
-  // lista completa de antemano.
-  const [collapsedCategories, setCollapsedCategories] = useState(() => new Set());
+  const userCountry = useMemo(() => detectUserCountry(), []);
+  const tree = useMemo(() => buildRegionTree(matches, userCountry), [matches, userCountry]);
 
-  const toggleCategory = (category) => {
-    setCollapsedCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(category)) next.delete(category);
-      else next.add(category);
-      return next;
-    });
+  // Un solo nivel superior abierto a la vez (región O el atajo local,
+  // comparten el mismo estado bajo el id especial "local") — punto 15:
+  // evita que el sidebar crezca sin límite. Se persiste en localStorage
+  // para sobrevivir a la navegación (punto 14), sin backend.
+  const [{ openRegionId, openCountryId }, setOpenState] = useState(loadSidebarState);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(SIDEBAR_STATE_KEY, JSON.stringify({ openRegionId, openCountryId }));
+    } catch {
+      // localStorage bloqueado — el sidebar sigue funcionando, solo no
+      // recuerda el estado entre visitas.
+    }
+  }, [openRegionId, openCountryId]);
+
+  const toggleRegion = (id) => {
+    setOpenState((prev) => ({
+      openRegionId: prev.openRegionId === id ? null : id,
+      openCountryId: prev.openRegionId === id ? prev.openCountryId : null,
+    }));
+  };
+  const toggleCountry = (id) => {
+    setOpenState((prev) => ({
+      ...prev,
+      openCountryId: prev.openCountryId === id ? null : id,
+    }));
   };
 
-  const groups = groupLeaguesByCategory(matches);
+  // Si la competencia activa cambia (hoy solo pasa al clickearla acá
+  // mismo, pero queda listo para un futuro link directo a una
+  // competencia), abrimos su región/país automáticamente — punto 13.
+  useEffect(() => {
+    if (!activeLeague) return;
+    if (tree.localShortcut?.competitions.some((c) => c.name === activeLeague)) {
+      setOpenState({ openRegionId: "local", openCountryId: null });
+      return;
+    }
+    for (const region of tree.regions) {
+      if (region.directCompetitions.some((c) => c.name === activeLeague)) {
+        setOpenState({ openRegionId: region.id, openCountryId: null });
+        return;
+      }
+      const country = region.countries.find((c) => c.competitions.some((comp) => comp.name === activeLeague));
+      if (country) {
+        setOpenState({ openRegionId: region.id, openCountryId: country.id });
+        return;
+      }
+      const org = region.organizations.find((o) => o.competitions.some((comp) => comp.name === activeLeague));
+      if (org) {
+        setOpenState({ openRegionId: region.id, openCountryId: org.id });
+        return;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeLeague]);
 
   const favoriteLeagues = favorites?.leagues ?? [];
   const favoriteTeams = favoriteTeamsFromMatches(matches, favorites?.teams ?? []);
@@ -131,6 +347,15 @@ export default function LeagueSidebar({
     onClose?.(); // en mobile, elegir una liga cierra el cajón
   };
 
+  const trimmedQuery = searchQuery.trim();
+  const searchResults = useMemo(() => {
+    if (!trimmedQuery) return null;
+    const q = trimmedQuery.toLowerCase();
+    return flattenCompetitions(tree).filter((c) => c.name.toLowerCase().includes(q));
+  }, [tree, trimmedQuery]);
+
+  const isEmpty = !tree.localShortcut && tree.regions.length === 0;
+
   return (
     <nav ref={navRef} className={"league-sidebar" + (open ? " open" : "")}>
       <div className="league-sidebar-header">
@@ -140,8 +365,20 @@ export default function LeagueSidebar({
         </button>
       </div>
 
+      <div className="sidebar-search">
+        <SearchIcon className="sidebar-search-icon" />
+        <input
+          type="text"
+          className="sidebar-search-input"
+          placeholder="Buscar liga…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          aria-label="Buscar competencia"
+        />
+      </div>
+
       <div className="sidebar-favorites">
-        <span className="region-header-static">Favoritos</span>
+        <span className="region-header-static">★ Mis competiciones</span>
         {hasFavorites ? (
           <ul>
             {favoriteLeagues.map((name) => (
@@ -170,80 +407,74 @@ export default function LeagueSidebar({
         )}
       </div>
 
-      {groups.length === 0 && matchesStatus === "loading" && (
+      {isEmpty && matchesStatus === "loading" && (
         <p className="empty" style={{ padding: "0 16px" }}>
           Cargando ligas…
         </p>
       )}
-      {groups.length === 0 && matchesStatus === "error" && (
+      {isEmpty && matchesStatus === "error" && (
         <p className="empty" style={{ padding: "0 16px" }}>
           No pudimos cargar las ligas.
         </p>
       )}
-      {groups.length === 0 && matchesStatus === "ok" && (
+      {isEmpty && matchesStatus === "ok" && (
         <p className="empty" style={{ padding: "0 16px" }}>
           No hay ligas para este día.
         </p>
       )}
 
-      {groups.map(([category, leagues]) => {
-        const isCollapsed = collapsedCategories.has(category);
-        return (
-          <div className="region-group" key={category}>
-            <button
-              className="region-header"
-              onClick={() => toggleCategory(category)}
-              aria-expanded={!isCollapsed}
-            >
-              <span>{category}</span>
-              <ChevronDownIcon className={"chevron" + (isCollapsed ? "" : " open")} />
-            </button>
-            <AnimatePresence initial={false}>
-              {!isCollapsed && (
-                <motion.div
-                  key="content"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: DURATION.fast, ease: EASE_OUT }}
-                  style={{ overflow: "hidden" }}
+      {searchResults ? (
+        <ul className="sidebar-competitions sidebar-search-results">
+          {searchResults.length === 0 ? (
+            <li className="sidebar-search-empty">Sin resultados para "{trimmedQuery}"</li>
+          ) : (
+            searchResults.map((c) => (
+              <li key={c.id ?? c.name}>
+                <button
+                  className={"league-sidebar-item competition-row" + (c.name === activeLeague ? " active" : "")}
+                  onClick={() => handleSelect(c.name)}
                 >
-                  <ul>
-                    {leagues.map((l) => (
-                      <li key={l.name}>
-                        <button
-                          className={
-                            "league-sidebar-item" + (l.name === activeLeague ? " active" : "")
-                          }
-                          onClick={() => handleSelect(l.name)}
-                        >
-                          {/* No es una bandera real: DESIGN.md prohíbe
-                              emoji/glifos como ícono, y muchas banderas son
-                              casi idénticas entre sí (Chad/Rumania). Un chip
-                              circular con el mismo hash de color que ya usan
-                              los escudos de respaldo da una pista de país sin
-                              ninguna de las dos ambigüedades. "World" (copas
-                              internacionales) no tiene país real, se omite. */}
-                          {l.country && l.country !== "World" && (
-                            <span
-                              className="country-chip"
-                              style={{ background: crestColor(l.country) }}
-                              aria-hidden="true"
-                            >
-                              {countryAbbr(l.country)}
-                            </span>
-                          )}
-                          {l.name}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        );
-      })}
+                  {c.name}
+                  <span className="competition-row-context">{c.context}</span>
+                </button>
+              </li>
+            ))
+          )}
+        </ul>
+      ) : (
+        <>
+          {tree.localShortcut && (
+            <RegionAccordion
+              region={{
+                id: "local",
+                name: tree.localShortcut.name,
+                icon: tree.localShortcut.icon,
+                directCompetitions: tree.localShortcut.competitions,
+                countries: [],
+                organizations: [],
+              }}
+              isOpen={openRegionId === "local"}
+              onToggleRegion={() => toggleRegion("local")}
+              openCountryId={openCountryId}
+              onToggleCountry={toggleCountry}
+              activeLeague={activeLeague}
+              onSelect={handleSelect}
+            />
+          )}
+          {tree.regions.map((region) => (
+            <RegionAccordion
+              key={region.id}
+              region={region}
+              isOpen={openRegionId === region.id}
+              onToggleRegion={() => toggleRegion(region.id)}
+              openCountryId={openCountryId}
+              onToggleCountry={toggleCountry}
+              activeLeague={activeLeague}
+              onSelect={handleSelect}
+            />
+          ))}
+        </>
+      )}
     </nav>
   );
 }

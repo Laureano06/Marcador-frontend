@@ -32,6 +32,7 @@ export default function DayFeedPage() {
     reloadMatches,
     activeLeague,
     onClearLeagueFilter,
+    favorites,
     isTeamFavorite,
     isLeagueFavorite,
     toggleTeam,
@@ -213,6 +214,7 @@ export default function DayFeedPage() {
           {matchesStatus === "ok" && (
             <MatchFeed
               matches={visibleMatches}
+              favorites={favorites}
               onSelectTeam={(id) => navigate(`/equipo/${id}`)}
               onSelectMatch={(match) => navigate(`/partido/${match.id}`)}
               isLeagueFavorite={isLeagueFavorite}

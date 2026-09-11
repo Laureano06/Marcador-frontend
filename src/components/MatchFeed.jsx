@@ -11,6 +11,7 @@ const EMPTY_COPY = {
 
 export default function MatchFeed({
   matches,
+  favorites,
   onSelectTeam,
   onSelectMatch,
   isLeagueFavorite,
@@ -20,7 +21,7 @@ export default function MatchFeed({
   feedFilter,
   onShowAll,
 }) {
-  const groups = groupByLeague(matches);
+  const groups = groupByLeague(matches, favorites);
   const leagues = Object.entries(groups);
 
   if (leagues.length === 0) {

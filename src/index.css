@@ -253,6 +253,58 @@ body {
   transform: rotate(90deg);
 }
 
+/* --- Buscador de competencias (sidebar) --- */
+.sidebar-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 14px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.sidebar-search-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+  color: var(--text-dimmer);
+}
+
+.sidebar-search-input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text);
+  background: transparent;
+  border: none;
+}
+
+.sidebar-search-input::placeholder {
+  color: var(--text-dimmer);
+}
+
+.sidebar-search-input:focus {
+  outline: none;
+}
+
+.sidebar-search-empty {
+  padding: 8px 14px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  color: var(--text-dimmer);
+  list-style: none;
+}
+
+.competition-row-context {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dimmer);
+  flex-shrink: 0;
+}
+
 /* --- Favoritos (sidebar): ligas y equipos marcados con la estrella --- */
 .sidebar-favorites {
   border-bottom: 1px solid var(--line);
@@ -342,6 +394,97 @@ body {
   transform: rotate(180deg);
 }
 
+.region-header-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.region-icon {
+  flex-shrink: 0;
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* Un país o una organización continental (CONMEBOL, UEFA...) dentro de
+   una región ya abierta — un escalón más chico y menos gritado que el
+   header de región (sin mayúsculas, sin letter-spacing), para que la
+   jerarquía Región > País se lea de un vistazo. */
+.sidebar-region-body {
+  padding-left: 8px;
+}
+
+.country-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: calc(100% - 8px);
+  margin-left: 8px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.country-header:hover {
+  color: var(--text);
+  background: var(--bg-card);
+}
+
+.country-header .chevron {
+  transition: transform 0.2s ease;
+  font-size: 9px;
+  color: var(--text-dimmer);
+  flex-shrink: 0;
+}
+
+.country-header .chevron.open {
+  transform: rotate(180deg);
+}
+
+.country-header-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.country-flag {
+  flex-shrink: 0;
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* Las competencias que cuelgan de un país/organización van un escalón
+   más adentro todavía que las que cuelgan directo de una región (ej. el
+   Mundial bajo "Internacional") — la indentación progresiva es la única
+   señal de jerarquía que necesita este árbol, sin líneas ni cajas
+   anidadas. */
+.sidebar-country .sidebar-competitions {
+  padding-left: 16px;
+}
+
+.competition-row.active .active-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.competition-row:hover {
+  color: var(--accent);
+  transform: translateX(3px);
+}
+
 .league-sidebar ul {
   list-style: none;
   padding: 0 8px 8px;
@@ -364,20 +507,6 @@ body {
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease,
     box-shadow 0.15s ease;
-}
-
-.country-chip {
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 7.5px;
-  color: #141416;
 }
 
 .league-sidebar-item:hover {

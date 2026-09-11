@@ -132,70 +132,15 @@ const COUNTRY_CONTINENT = {
   Australia: "Oceanía",
 };
 
-export const CATEGORY_ORDER = [
-  "Sudamérica",
-  "Europa",
-  "Norteamérica",
-  "Asia",
-  "África",
-  "Oceanía",
-  "Internacional",
-  "Juveniles",
-  "Femenino",
-  "Otros",
-];
-
-const COUNTRY_STOPWORDS = new Set(["and", "de", "the", "of"]);
-
-// Abreviatura corta de país para el chip circular del sidebar — no son
-// banderas reales (ver DESIGN.md: nada de emoji/glifos haciendo de ícono,
-// y muchas banderas son visualmente casi idénticas entre sí, ej.
-// Chad/Rumania). Un chip circular con el mismo hash de color que ya usan
-// los escudos de respaldo evita ambas cosas: encaja con "círculo =
-// identidad" y nunca es ambiguo. "World" (competencias internacionales)
-// no tiene país real — se maneja aparte, ver LeagueSidebar.jsx.
-export function countryAbbr(country) {
-  if (!country) return "";
-  const words = country
-    .split(/[-\s]+/)
-    .filter((w) => w && !COUNTRY_STOPWORDS.has(w.toLowerCase()));
-  if (words.length === 1) return words[0].slice(0, 3).toUpperCase();
-  return words
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 3)
-    .toUpperCase();
-}
-
+// Sigue usada por utils.js (para sacar Juveniles/Femenino del ranking del
+// feed) y por src/competitions/regionTree.js (para lo mismo, en el árbol
+// del sidebar) — un solo lugar para "esto es una reserva/juvenil/
+// femenino", pese a que ninguna de las dos la use ya para categorizar por
+// continente (eso ahora vive en src/competitions/config.js, ver
+// COUNTRY_META, que además necesitaba distinguir país de organización
+// continental — algo que esta función no hacía).
 export function categoryForLeague(leagueName, country) {
   if (nameMatches(leagueName, WOMEN_HINTS)) return "Femenino";
   if (nameMatches(leagueName, YOUTH_HINTS)) return "Juveniles";
   return COUNTRY_CONTINENT[country] || "Otros";
-}
-
-// Arma la estructura del sidebar a partir de los partidos ya cargados
-// (no hace ninguna request nueva: reusa lo que trajo el feed del día).
-// Devuelve pares [categoría, ligas[]] en el orden fijo de CATEGORY_ORDER,
-// salteando categorías vacías.
-export function groupLeaguesByCategory(matches) {
-  const seen = new Map();
-  for (const m of matches) {
-    if (seen.has(m.league)) continue;
-    seen.set(m.league, {
-      name: m.league,
-      country: m.leagueCountry,
-      category: categoryForLeague(m.league, m.leagueCountry),
-    });
-  }
-
-  const groups = {};
-  for (const league of seen.values()) {
-    if (!groups[league.category]) groups[league.category] = [];
-    groups[league.category].push(league);
-  }
-  for (const list of Object.values(groups)) {
-    list.sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  return CATEGORY_ORDER.filter((c) => groups[c]).map((c) => [c, groups[c]]);
 }

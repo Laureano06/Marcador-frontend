@@ -1,4 +1,6 @@
 import { categoryForLeague } from "./leagueCategories";
+import { rankCompetitions, logCompetitionRanking } from "./competitions/rankCompetitions";
+import { detectUserCountry } from "./competitions/userCountry";
 
 // Minuto/fase de un partido en vivo, para el status badge — "45'" en
 // juego, "DESC" en el entretiempo (la API no avanza `elapsed` durante el
@@ -106,52 +108,28 @@ export function labelForDate(dateKey) {
   return `${weekday} ${dayMonth}`.toUpperCase();
 }
 
-// Orden de prioridad para mostrar las ligas dentro de cada día:
-// 1) TODAS las competencias de Argentina (por país, no por nombre — así
-//    entra Liga Profesional, Copa Argentina, Primera Nacional, etc. sin
-//    tener que listarlas una por una).
-// 2) Las 5 grandes ligas europeas, en este orden: Inglaterra, Italia,
-//    Francia, España, Alemania.
-// 3) Las copas internacionales top: Libertadores y Champions League.
-// El resto se muestra después, en el orden en que llega de la API. Los
-// nombres tienen que coincidir EXACTO con lo que devuelve la API (campo
-// raw.league.name) — si una liga nueva no aparece en el orden esperado,
-// revisá que el nombre esté bien escrito acá.
-const LEAGUE_NAME_ORDER = [
-  "Premier League", // Inglaterra
-  "Serie A", // Italia
-  "Ligue 1", // Francia
-  "La Liga", // España
-  "Bundesliga", // Alemania
-  "CONMEBOL Libertadores",
-  "UEFA Champions League",
-];
-
 // Reserva/juveniles y femenino van SIEMPRE al final del feed del día,
-// nunca mezclados en el bloque genérico de "el resto" — antes ese bloque
-// se mostraba en el orden crudo de la API, que no tiene ninguna relación
-// con relevancia, y una liga de reserva (ej. "Reserve League") podía
-// terminar apareciendo primero en el día, antes que ligas de primera de
-// cualquier país. Reusa la misma detección por nombre que ya usa el
-// sidebar (leagueCategories.js) — una sola fuente de verdad para "esto es
-// una reserva/juvenil/femenino", no una lista separada para mantener acá.
+// nunca mezclados en el ranking general — una liga de reserva/juvenil no
+// debería competir por relevancia con una de primera solo porque hoy
+// tenga un partido en vivo. Reusa la misma detección por nombre que ya
+// usa el sidebar (leagueCategories.js) — una sola fuente de verdad para
+// "esto es una reserva/juvenil/femenino".
 const LOW_PRIORITY_CATEGORIES = new Set(["Juveniles", "Femenino"]);
-const LOW_PRIORITY_RANK = 1000;
 
-function leagueRank(name, country) {
-  // Esta regla va PRIMERO a propósito: "Reserve League" de Argentina es
-  // Argentina Y reserva a la vez — si el chequeo de país fuera primero,
-  // el país siempre ganaba y la liga de reserva terminaba arriba de
-  // todo. Reserva/juveniles/femenino van al final sin importar el país.
-  if (LOW_PRIORITY_CATEGORIES.has(categoryForLeague(name, country))) {
-    return LOW_PRIORITY_RANK;
-  }
-  if (country === "Argentina") return 0;
-  const i = LEAGUE_NAME_ORDER.indexOf(name);
-  return i === -1 ? LEAGUE_NAME_ORDER.length + 1 : i + 1;
-}
+// País del usuario, detectado una sola vez (no depende de nada que
+// cambie durante la sesión — ver userCountry.js). rankCompetitions.js
+// (SYSTEM A del pedido: relevancia dinámica del feed principal) es
+// deliberadamente un módulo aparte de regionTree.js (SYSTEM B: navegación
+// estructural del sidebar) — mismo motivo por el que esta función NO se
+// reusa para ordenar el sidebar.
+const USER_COUNTRY = detectUserCountry();
 
-export function groupByLeague(matches) {
+// Agrupa los partidos del día por liga y ordena los grupos por relevancia
+// para el usuario (ver src/competitions/rankCompetitions.js). `favorites`
+// es opcional — sin él, el ranking simplemente no aplica ningún boost de
+// personalización (favoriteBoost = 0 en todos), el resto de la fórmula
+// sigue funcionando igual.
+export function groupByLeague(matches, favorites) {
   const groups = {};
   for (const m of matches) {
     const key = m.league || "Otras competencias";
@@ -159,14 +137,41 @@ export function groupByLeague(matches) {
     groups[key].push(m);
   }
 
-  // Los objetos en JS mantienen el orden de inserción, así que basta con
-  // reconstruirlo ya ordenado por prioridad. El país de cada liga sale
-  // del primer partido del grupo (todos comparten liga -> mismo país).
-  const sortedEntries = Object.entries(groups).sort(
-    (a, b) =>
-      leagueRank(a[0], a[1][0]?.leagueCountry) -
-      leagueRank(b[0], b[1][0]?.leagueCountry)
+  const favoriteLeagues = favorites?.leagues || [];
+  const favoriteTeamIds = favorites?.teams || [];
+
+  const entries = Object.entries(groups);
+  const [normalEntries, lowPriorityEntries] = entries.reduce(
+    ([norm, low], entry) => {
+      const [name, leagueMatches] = entry;
+      const country = leagueMatches[0]?.leagueCountry;
+      (LOW_PRIORITY_CATEGORIES.has(categoryForLeague(name, country)) ? low : norm).push(entry);
+      return [norm, low];
+    },
+    [[], []]
   );
 
-  return Object.fromEntries(sortedEntries);
+  const toCompetition = ([name, leagueMatches]) => {
+    const first = leagueMatches[0];
+    return {
+      name,
+      leagueMatches,
+      id: first?.leagueId,
+      country: first?.leagueCountry,
+      isLive: leagueMatches.some((m) => m.status === "live"),
+      hasFavoriteTeamPlaying: leagueMatches.some(
+        (m) => favoriteTeamIds.includes(m.homeId) || favoriteTeamIds.includes(m.awayId)
+      ),
+    };
+  };
+
+  const userContext = { country: USER_COUNTRY, favoriteLeagues };
+  const rankedNormal = rankCompetitions(normalEntries.map(toCompetition), userContext);
+  const rankedLow = rankCompetitions(lowPriorityEntries.map(toCompetition), userContext);
+
+  logCompetitionRanking(rankedNormal, `Feed del día — ${rankedNormal.length} competencias`);
+
+  return Object.fromEntries(
+    [...rankedNormal, ...rankedLow].map((c) => [c.name, c.leagueMatches])
+  );
 }

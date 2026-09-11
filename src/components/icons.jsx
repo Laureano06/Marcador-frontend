@@ -70,6 +70,15 @@ export function DownloadIcon(props) {
   );
 }
 
+export function SearchIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="11" cy="11" r="7" />
+      <line x1="21" y1="21" x2="16.5" y2="16.5" />
+    </svg>
+  );
+}
+
 export function StarIcon({ active, ...props }) {
   return (
     <svg
