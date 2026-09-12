@@ -154,8 +154,12 @@ export default function Layout() {
               PARTIDOS
             </button>
 
-            <button className="transfers-nav-btn" onClick={() => navigate("/transferencias")}>
+            <button className="header-nav-btn" onClick={() => navigate("/transferencias")}>
               Fichajes
+            </button>
+
+            <button className="header-nav-btn" onClick={() => navigate("/comparar")}>
+              Comparar
             </button>
 
             {canInstall && (
