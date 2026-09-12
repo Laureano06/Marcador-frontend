@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { fetchMatchDetail } from "../api";
 import { crestColor, liveMinuteLabel } from "../utils";
+import { detectUserCountry } from "../competitions/userCountry";
 import LineupPitch from "./LineupPitch";
 import MatchEvents from "./MatchEvents";
 import MatchH2H from "./MatchH2H";
@@ -180,6 +181,105 @@ function Odds({ odds, home, away }) {
       <p className="prediction-disclaimer">
         Cuota consensuada entre casas de apuestas, informativa — no es una recomendación de apuesta.
       </p>
+    </div>
+  );
+}
+
+function ChannelChip({ broadcast }) {
+  if (broadcast.channelLink) {
+    return (
+      <a
+        href={broadcast.channelLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="broadcast-chip broadcast-chip-link"
+      >
+        {broadcast.channelName}
+      </a>
+    );
+  }
+  return <span className="broadcast-chip">{broadcast.channelName}</span>;
+}
+
+// Agrupa las transmisiones por país (BSD manda una fila POR CANAL, un
+// mismo país puede tener varios) y prioriza el país detectado del
+// visitante — mismo criterio que ya usa el sidebar de ligas para
+// destacar lo local sin ocultar el resto. Intl.DisplayNames en vez de
+// mantener un mapa de códigos a nombres a mano: cubre cualquier país
+// que BSD mande, no solo los que ya conocemos.
+function Broadcasts({ broadcasts }) {
+  const [showAll, setShowAll] = useState(false);
+  const userCountry = useMemo(() => {
+    try {
+      return detectUserCountry();
+    } catch {
+      return null;
+    }
+  }, []);
+  const regionNames = useMemo(() => {
+    try {
+      return new Intl.DisplayNames(["es"], { type: "region" });
+    } catch {
+      return null;
+    }
+  }, []);
+  const countryName = (code) => {
+    if (!code) return "Otros";
+    try {
+      return regionNames?.of(code) || code;
+    } catch {
+      return code;
+    }
+  };
+
+  const grouped = useMemo(() => {
+    const map = new Map();
+    for (const b of broadcasts) {
+      const key = b.countryCode || "??";
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(b);
+    }
+    return [...map.entries()];
+  }, [broadcasts]);
+
+  const userGroup = grouped.find(([code]) => code === userCountry);
+  const otherGroups = grouped
+    .filter(([code]) => code !== userCountry)
+    .sort((a, b) => countryName(a[0]).localeCompare(countryName(b[0]), "es"));
+
+  return (
+    <div className="broadcasts">
+      <div className="broadcasts-top">
+        <span className="broadcasts-label">Dónde ver:</span>
+        {userGroup ? (
+          <span className="broadcast-chips">
+            {userGroup[1].map((b) => (
+              <ChannelChip key={b.id} broadcast={b} />
+            ))}
+          </span>
+        ) : (
+          <span className="broadcasts-empty">sin datos para tu país</span>
+        )}
+        {otherGroups.length > 0 && (
+          <button className="broadcasts-toggle" onClick={() => setShowAll((s) => !s)}>
+            {showAll ? "Ocultar otros países" : `Otros países (${otherGroups.length})`}
+          </button>
+        )}
+      </div>
+      {showAll && (
+        <ul className="broadcasts-list">
+          {otherGroups.map(([code, list]) => (
+            <li key={code} className="broadcasts-row">
+              <span className="broadcasts-country">{countryName(code)}</span>
+              <span className="broadcast-chips">
+                {list.map((b) => (
+                  <ChannelChip key={b.id} broadcast={b} />
+                ))}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -428,6 +528,8 @@ export default function MatchDetail({ matchId, onBack }) {
           </div>
 
           <MatchMeta detail={detail} />
+
+          {detail.broadcasts?.length > 0 && <Broadcasts broadcasts={detail.broadcasts} />}
 
           {availableTabs.length > 1 && (
             <div className="match-tabs" role="tablist">
