@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { fetchCompetitionDetail, fetchBestXI } from "../api";
+import { fetchCompetitionDetail, fetchBestXI, fetchLeagueLeaders } from "../api";
 import PlayerFace from "./PlayerFace";
 import PlayerLink from "./PlayerLink";
 import TeamLink from "./TeamLink";
@@ -155,49 +155,51 @@ export default function CompetitionDetail({ leagueId, onBack }) {
   // usuario cambia de competencia sin tocar el selector.
   const [selectedSeasonId, setSelectedSeasonId] = useState(undefined);
 
-  // Pedido aparte de fetchCompetitionDetail (endpoint propio en el
-  // backend), encadenado después de que la ficha principal ya resolvió
-  // — ver comentario en `load` sobre por qué no va en paralelo. null =
-  // "no calificó nadie todavía" (RULE 1: si no hay datos, la pestaña ni
-  // aparece) — undefined = "sin pedir todavía"/cargando.
+  // Goleadores/asistencias y el once ideal viven en sus propios
+  // endpoints, separados de fetchCompetitionDetail — BSD puede tardar
+  // hasta ~1 minuto calculando esos rankings para una temporada fría
+  // (nadie la pidió en las últimas 2hs), contra <1s que tarda la tabla
+  // de posiciones. Pedirlos junto a la ficha principal significaba que
+  // la tabla (que sí está lista al toque) esperaba sin necesidad al más
+  // lento de los dos. Por eso se piden DESPUÉS de que la ficha principal
+  // ya resolvió — la tabla aparece ya, estas dos pestañas se suman solas
+  // en cuanto están. null = "no hay datos para esta temporada" (RULE 1:
+  // sin datos, la pestaña ni aparece) — undefined = todavía pendiente.
+  const [leaders, setLeaders] = useState(undefined);
   const [bestXI, setBestXI] = useState(undefined);
 
-  // El once ideal se pide DESPUÉS de que resuelva la ficha principal, no
-  // en paralelo — BSD limita ráfagas a 25 req/seg por IP, y sumarle un
-  // quinto pedido concurrente a los 4 que ya dispara fetchCompetitionDetail
-  // (standings/scorers/assists/seasons) para una temporada recién
-  // elegida y sin cachear alcanzaba a veces ese límite: el backend
-  // reintentaba, y esos reintentos en cadena hacían que el pedido
-  // principal superara el timeout de 20s del frontend. Encadenarlo
-  // (nunca antes de que el otro termine) evita el pico de concurrencia
-  // sin perder la ventaja original de no bloquear la tabla si el once
-  // ideal tarda o falla.
   const load = useCallback(() => {
     setStatus("loading");
     setCompetition(null);
+    setLeaders(undefined);
     setBestXI(undefined);
-    // Variable local, no estado de React: el estado tarda un render en
-    // reflejarse, así que leerlo desde este mismo closure más abajo
-    // vería el valor viejo (loading) en vez del "ok" recién puesto.
-    let mainLoadOk = false;
     fetchCompetitionDetail(leagueId, selectedSeasonId)
       .then((data) => {
         setCompetition(data);
         setStatus("ok");
-        mainLoadOk = true;
-        return fetchBestXI(leagueId, selectedSeasonId);
-      })
-      .then((data) => {
-        if (mainLoadOk) setBestXI(data ?? null);
+        const seasonId = data.season?.id;
+        if (!seasonId) {
+          setLeaders(null);
+          setBestXI(null);
+          return;
+        }
+        fetchLeagueLeaders(leagueId, seasonId)
+          .then(setLeaders)
+          .catch((err) => {
+            console.error(err);
+            setLeaders(null);
+          });
+        fetchBestXI(leagueId, seasonId)
+          .then((data) => setBestXI(data ?? null))
+          .catch((err) => {
+            console.error(err);
+            setBestXI(null);
+          });
       })
       .catch((err) => {
         console.error(err);
-        if (mainLoadOk) {
-          setBestXI(null);
-        } else {
-          setErrorMessage(err.message);
-          setStatus("error");
-        }
+        setErrorMessage(err.message);
+        setStatus("error");
       });
   }, [leagueId, selectedSeasonId]);
 
@@ -221,8 +223,8 @@ export default function CompetitionDetail({ leagueId, onBack }) {
   const availableTabs = competition
     ? TABS.filter((t) => {
         if (t.key === "tabla") return !!competition.standings?.length;
-        if (t.key === "goleadores") return !!competition.topScorers?.length;
-        if (t.key === "asistencias") return !!competition.topAssists?.length;
+        if (t.key === "goleadores") return !!leaders?.topScorers?.length;
+        if (t.key === "asistencias") return !!leaders?.topAssists?.length;
         if (t.key === "once-ideal") return !!bestXI;
         return false;
       })
@@ -235,13 +237,7 @@ export default function CompetitionDetail({ leagueId, onBack }) {
         <ChevronLeftIcon />Volver
       </button>
 
-      {status === "loading" && (
-        <p className="empty">
-          {selectedSeasonId
-            ? "Cargando temporada… puede tardar hasta un minuto si nadie la pidió antes."
-            : "Cargando competencia…"}
-        </p>
-      )}
+      {status === "loading" && <p className="empty">Cargando competencia…</p>}
       {status === "error" && (
         <div className="error-state">
           <p className="error-state-title">No pudimos cargar esta competencia</p>
@@ -310,15 +306,22 @@ export default function CompetitionDetail({ leagueId, onBack }) {
             </div>
           )}
 
+          {(leaders === undefined || bestXI === undefined) && (
+            <p className="competition-stats-pending">
+              Cargando goleadores, asistencias y once ideal — puede tardar hasta un minuto si nadie pidió esta
+              temporada antes.
+            </p>
+          )}
+
           {currentTab === "tabla" &&
             competition.standings?.map((table, i) => <StandingsTable key={i} table={table} />)}
 
-          {currentTab === "goleadores" && competition.topScorers && (
-            <Leaderboard leaders={competition.topScorers} />
+          {currentTab === "goleadores" && leaders?.topScorers && (
+            <Leaderboard leaders={leaders.topScorers} />
           )}
 
-          {currentTab === "asistencias" && competition.topAssists && (
-            <Leaderboard leaders={competition.topAssists} />
+          {currentTab === "asistencias" && leaders?.topAssists && (
+            <Leaderboard leaders={leaders.topAssists} />
           )}
 
           {currentTab === "once-ideal" && bestXI && <BestXI bestXI={bestXI} />}

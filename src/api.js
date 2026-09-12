@@ -63,24 +63,28 @@ export async function fetchPlayerDetail(playerId) {
   return getJson(`/api/players/${playerId}`);
 }
 
-// BSD calcula goleadores/asistencias al vuelo para una temporada que
-// nadie pidió hace rato — medido en vivo contra una temporada vieja sin
-// cachear: 19s el de goleadores, 58s el de asistencias, en una sola
-// llamada (no por reintentos nuestros). El TTL de 2hs del backend hace
-// que esto solo le toque a quien primero pida esa temporada puntual —
-// pero a esa primera persona el timeout genérico de 20s le cortaba el
-// pedido antes de que BSD terminara de responder, aunque el pedido
-// hubiera funcionado bien con más paciencia.
-const SLOW_COMPETITION_TIMEOUT_MS = 75000;
-
 export async function fetchCompetitionDetail(leagueId, seasonId) {
   const query = seasonId ? `?season=${seasonId}` : "";
-  return getJson(`/api/leagues/${leagueId}${query}`, SLOW_COMPETITION_TIMEOUT_MS);
+  return getJson(`/api/leagues/${leagueId}${query}`);
 }
+
+// BSD calcula goleadores/asistencias (y el once ideal, que depende de la
+// misma clase de agregación) al vuelo para una temporada que nadie pidió
+// hace rato — medido en vivo contra una temporada vieja sin cachear:
+// 19s el de goleadores, 58s el de asistencias, en una sola llamada (no
+// por reintentos nuestros). El TTL de 2hs del backend hace que esto solo
+// le toque a quien primero pida esa temporada puntual — por eso viven en
+// su propio endpoint separado de la tabla (que sí responde rápido
+// siempre) y con un timeout más generoso que el default.
+const SLOW_LEADERBOARD_TIMEOUT_MS = 75000;
 
 export async function fetchBestXI(leagueId, seasonId) {
   const query = seasonId ? `?season=${seasonId}` : "";
-  return getJson(`/api/leagues/${leagueId}/bestxi${query}`, SLOW_COMPETITION_TIMEOUT_MS);
+  return getJson(`/api/leagues/${leagueId}/bestxi${query}`, SLOW_LEADERBOARD_TIMEOUT_MS);
+}
+
+export async function fetchLeagueLeaders(leagueId, seasonId) {
+  return getJson(`/api/leagues/${leagueId}/leaders?season=${seasonId}`, SLOW_LEADERBOARD_TIMEOUT_MS);
 }
 
 export async function fetchRefereeDetail(refereeId) {
