@@ -156,24 +156,48 @@ export default function CompetitionDetail({ leagueId, onBack }) {
   const [selectedSeasonId, setSelectedSeasonId] = useState(undefined);
 
   // Pedido aparte de fetchCompetitionDetail (endpoint propio en el
-  // backend) — corre en paralelo, así una demora en el once ideal nunca
-  // bloquea que se vea la tabla. null = "no calificó nadie todavía" (RULE
-  // 1: si no hay datos, la pestaña ni aparece) — undefined = "sin pedir
-  // todavía"/cargando.
+  // backend), encadenado después de que la ficha principal ya resolvió
+  // — ver comentario en `load` sobre por qué no va en paralelo. null =
+  // "no calificó nadie todavía" (RULE 1: si no hay datos, la pestaña ni
+  // aparece) — undefined = "sin pedir todavía"/cargando.
   const [bestXI, setBestXI] = useState(undefined);
 
+  // El once ideal se pide DESPUÉS de que resuelva la ficha principal, no
+  // en paralelo — BSD limita ráfagas a 25 req/seg por IP, y sumarle un
+  // quinto pedido concurrente a los 4 que ya dispara fetchCompetitionDetail
+  // (standings/scorers/assists/seasons) para una temporada recién
+  // elegida y sin cachear alcanzaba a veces ese límite: el backend
+  // reintentaba, y esos reintentos en cadena hacían que el pedido
+  // principal superara el timeout de 20s del frontend. Encadenarlo
+  // (nunca antes de que el otro termine) evita el pico de concurrencia
+  // sin perder la ventaja original de no bloquear la tabla si el once
+  // ideal tarda o falla.
   const load = useCallback(() => {
     setStatus("loading");
     setCompetition(null);
+    setBestXI(undefined);
+    // Variable local, no estado de React: el estado tarda un render en
+    // reflejarse, así que leerlo desde este mismo closure más abajo
+    // vería el valor viejo (loading) en vez del "ok" recién puesto.
+    let mainLoadOk = false;
     fetchCompetitionDetail(leagueId, selectedSeasonId)
       .then((data) => {
         setCompetition(data);
         setStatus("ok");
+        mainLoadOk = true;
+        return fetchBestXI(leagueId, selectedSeasonId);
+      })
+      .then((data) => {
+        if (mainLoadOk) setBestXI(data ?? null);
       })
       .catch((err) => {
         console.error(err);
-        setErrorMessage(err.message);
-        setStatus("error");
+        if (mainLoadOk) {
+          setBestXI(null);
+        } else {
+          setErrorMessage(err.message);
+          setStatus("error");
+        }
       });
   }, [leagueId, selectedSeasonId]);
 
@@ -184,16 +208,6 @@ export default function CompetitionDetail({ leagueId, onBack }) {
   useEffect(() => {
     setSelectedSeasonId(undefined); // otra competencia -> volvemos a "temporada actual"
   }, [leagueId]);
-
-  useEffect(() => {
-    setBestXI(undefined);
-    fetchBestXI(leagueId, selectedSeasonId)
-      .then(setBestXI)
-      .catch((err) => {
-        console.error(err);
-        setBestXI(null);
-      });
-  }, [leagueId, selectedSeasonId]);
 
   useDocumentMeta({
     title: competition ? `${competition.name}: tabla, partidos y goleadores | PARTIDOS` : "PARTIDOS",
@@ -221,7 +235,13 @@ export default function CompetitionDetail({ leagueId, onBack }) {
         <ChevronLeftIcon />Volver
       </button>
 
-      {status === "loading" && <p className="empty">Cargando competencia…</p>}
+      {status === "loading" && (
+        <p className="empty">
+          {selectedSeasonId
+            ? "Cargando temporada… puede tardar hasta un minuto si nadie la pidió antes."
+            : "Cargando competencia…"}
+        </p>
+      )}
       {status === "error" && (
         <div className="error-state">
           <p className="error-state-title">No pudimos cargar esta competencia</p>

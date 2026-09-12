@@ -14,9 +14,9 @@ const TIMEOUT_MS = 20000;
 // sin datos (503/502) — ahí sí no queda otra que mostrar un error. Este
 // helper solo mejora el mensaje de ese caso, leyendo el `error` que
 // manda el backend en vez de un genérico "API respondió 503".
-async function getJson(path) {
+async function getJson(path, timeoutMs = TIMEOUT_MS) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   let res;
   try {
@@ -63,14 +63,24 @@ export async function fetchPlayerDetail(playerId) {
   return getJson(`/api/players/${playerId}`);
 }
 
+// BSD calcula goleadores/asistencias al vuelo para una temporada que
+// nadie pidió hace rato — medido en vivo contra una temporada vieja sin
+// cachear: 19s el de goleadores, 58s el de asistencias, en una sola
+// llamada (no por reintentos nuestros). El TTL de 2hs del backend hace
+// que esto solo le toque a quien primero pida esa temporada puntual —
+// pero a esa primera persona el timeout genérico de 20s le cortaba el
+// pedido antes de que BSD terminara de responder, aunque el pedido
+// hubiera funcionado bien con más paciencia.
+const SLOW_COMPETITION_TIMEOUT_MS = 75000;
+
 export async function fetchCompetitionDetail(leagueId, seasonId) {
   const query = seasonId ? `?season=${seasonId}` : "";
-  return getJson(`/api/leagues/${leagueId}${query}`);
+  return getJson(`/api/leagues/${leagueId}${query}`, SLOW_COMPETITION_TIMEOUT_MS);
 }
 
 export async function fetchBestXI(leagueId, seasonId) {
   const query = seasonId ? `?season=${seasonId}` : "";
-  return getJson(`/api/leagues/${leagueId}/bestxi${query}`);
+  return getJson(`/api/leagues/${leagueId}/bestxi${query}`, SLOW_COMPETITION_TIMEOUT_MS);
 }
 
 export async function fetchRefereeDetail(refereeId) {
