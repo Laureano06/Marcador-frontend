@@ -595,6 +595,16 @@ export default function MatchDetail({ matchId, onBack }) {
 
           {currentTab === "resumen" && (
             <>
+              {detail.funFacts?.length > 0 && (
+                <div className="team-section">
+                  <h2 className="team-section-title">Datos curiosos</h2>
+                  <ul className="fun-facts-list">
+                    {detail.funFacts.map((fact, i) => (
+                      <li key={i}>{fact}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               {detail.statistics?.length > 0 && (
                 <div className="team-section">
                   <h2 className="team-section-title">Estadísticas destacadas</h2>
@@ -606,7 +616,7 @@ export default function MatchDetail({ matchId, onBack }) {
                 </div>
               )}
               {detail.events?.length > 0 && <MatchEvents events={detail.events.slice(0, 5)} />}
-              {!detail.statistics?.length && !detail.events?.length && detail.status === "scheduled" && (
+              {!detail.statistics?.length && !detail.events?.length && !detail.funFacts?.length && detail.status === "scheduled" && (
                 <p className="empty">
                   El resumen del partido va a estar disponible cuando arranque.
                 </p>

@@ -3916,3 +3916,106 @@ footer {
 .momentum-legend-dot-away {
   background: var(--gray-mid);
 }
+
+/* --- Datos curiosos (MatchDetail) --- */
+.fun-facts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+.fun-facts-list li {
+  position: relative;
+  padding-left: 14px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.fun-facts-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* --- Once ideal (CompetitionDetail) --- */
+.best-xi-season {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dimmer);
+  margin-bottom: 16px;
+}
+
+.best-xi-row {
+  margin-bottom: 20px;
+}
+
+.best-xi-row-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-dimmer);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 8px;
+}
+
+.best-xi-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.best-xi-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 96px;
+  padding: 10px 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  text-align: center;
+}
+
+.best-xi-player:hover {
+  border-color: var(--accent);
+}
+
+.best-xi-player-name {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.best-xi-player-team {
+  font-size: 10px;
+  color: var(--text-dimmer);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.best-xi-player-rating {
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--accent);
+  padding: 1px 8px;
+  border-radius: 8px;
+  background: var(--accent-dim);
+}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { fetchCompetitionDetail } from "../api";
+import { fetchCompetitionDetail, fetchBestXI } from "../api";
 import PlayerFace from "./PlayerFace";
 import PlayerLink from "./PlayerLink";
 import TeamLink from "./TeamLink";
@@ -10,7 +10,40 @@ const TABS = [
   { key: "tabla", label: "Tabla" },
   { key: "goleadores", label: "Goleadores" },
   { key: "asistencias", label: "Asistencias" },
+  { key: "once-ideal", label: "Once ideal" },
 ];
+
+const BEST_XI_ROWS = [
+  { key: "goalkeepers", label: "Arquero" },
+  { key: "defenders", label: "Defensores" },
+  { key: "midfielders", label: "Mediocampistas" },
+  { key: "forwards", label: "Delanteros" },
+];
+
+function BestXI({ bestXI }) {
+  return (
+    <div className="best-xi">
+      {bestXI.season?.name && <p className="best-xi-season">{bestXI.season.name}</p>}
+      {BEST_XI_ROWS.map((row) => (
+        <div key={row.key} className="best-xi-row">
+          <div className="best-xi-row-label">{row.label}</div>
+          <div className="best-xi-players">
+            {bestXI[row.key].map((p) => (
+              <PlayerLink key={p.playerId} playerId={p.playerId} className="best-xi-player">
+                <PlayerFace photo={p.photo} name={p.playerName} size="md" />
+                <span className="best-xi-player-name">{p.playerName}</span>
+                <TeamLink teamId={p.teamId} className="best-xi-player-team">
+                  {p.teamName}
+                </TeamLink>
+                <span className="best-xi-player-rating">{p.avgRating.toFixed(2)}</span>
+              </PlayerLink>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function FormChips({ form }) {
   if (!form) return null;
@@ -122,6 +155,13 @@ export default function CompetitionDetail({ leagueId, onBack }) {
   // usuario cambia de competencia sin tocar el selector.
   const [selectedSeasonId, setSelectedSeasonId] = useState(undefined);
 
+  // Pedido aparte de fetchCompetitionDetail (endpoint propio en el
+  // backend) — corre en paralelo, así una demora en el once ideal nunca
+  // bloquea que se vea la tabla. null = "no calificó nadie todavía" (RULE
+  // 1: si no hay datos, la pestaña ni aparece) — undefined = "sin pedir
+  // todavía"/cargando.
+  const [bestXI, setBestXI] = useState(undefined);
+
   const load = useCallback(() => {
     setStatus("loading");
     setCompetition(null);
@@ -145,6 +185,16 @@ export default function CompetitionDetail({ leagueId, onBack }) {
     setSelectedSeasonId(undefined); // otra competencia -> volvemos a "temporada actual"
   }, [leagueId]);
 
+  useEffect(() => {
+    setBestXI(undefined);
+    fetchBestXI(leagueId, selectedSeasonId)
+      .then(setBestXI)
+      .catch((err) => {
+        console.error(err);
+        setBestXI(null);
+      });
+  }, [leagueId, selectedSeasonId]);
+
   useDocumentMeta({
     title: competition ? `${competition.name}: tabla, partidos y goleadores | PARTIDOS` : "PARTIDOS",
     description: competition
@@ -159,6 +209,7 @@ export default function CompetitionDetail({ leagueId, onBack }) {
         if (t.key === "tabla") return !!competition.standings?.length;
         if (t.key === "goleadores") return !!competition.topScorers?.length;
         if (t.key === "asistencias") return !!competition.topAssists?.length;
+        if (t.key === "once-ideal") return !!bestXI;
         return false;
       })
     : [];
@@ -249,6 +300,8 @@ export default function CompetitionDetail({ leagueId, onBack }) {
           {currentTab === "asistencias" && competition.topAssists && (
             <Leaderboard leaders={competition.topAssists} />
           )}
+
+          {currentTab === "once-ideal" && bestXI && <BestXI bestXI={bestXI} />}
 
           {availableTabs.length === 0 && (
             <p className="empty">Todavía no hay tabla ni estadísticas disponibles para esta competencia.</p>

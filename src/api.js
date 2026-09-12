@@ -68,6 +68,11 @@ export async function fetchCompetitionDetail(leagueId, seasonId) {
   return getJson(`/api/leagues/${leagueId}${query}`);
 }
 
+export async function fetchBestXI(leagueId, seasonId) {
+  const query = seasonId ? `?season=${seasonId}` : "";
+  return getJson(`/api/leagues/${leagueId}/bestxi${query}`);
+}
+
 export async function fetchRefereeDetail(refereeId) {
   return getJson(`/api/referees/${refereeId}`);
 }
