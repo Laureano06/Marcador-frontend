@@ -3750,3 +3750,95 @@ footer {
   color: var(--text-dimmer);
   flex-shrink: 0;
 }
+
+/* --- Social (MatchDetail) --- */
+.social-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.social-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+.social-item:hover {
+  border-color: var(--accent);
+}
+
+.social-item-thumb {
+  position: relative;
+  flex-shrink: 0;
+  width: 88px;
+  height: 88px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.social-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.social-item-play {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 28px;
+  height: 28px;
+  color: #ffffff;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6));
+}
+
+.social-item-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+}
+
+.social-item-account {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.social-item-account-name {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.social-item-verified {
+  color: var(--accent);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.social-item-time {
+  color: var(--text-dimmer);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.social-item-text {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}

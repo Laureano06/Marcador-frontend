@@ -99,3 +99,25 @@ export function StarIcon({ active, ...props }) {
     </svg>
   );
 }
+
+export function CheckBadgeIcon(props) {
+  return (
+    <svg {...base} fill="currentColor" stroke="none" {...props}>
+      <path d="M12 2 14.4 4.1 17.5 3.6 18.4 6.6 21.4 7.5 20.9 10.6 23 13 20.9 15.4 21.4 18.5 18.4 19.4 17.5 22.4 14.4 21.9 12 24 9.6 21.9 6.5 22.4 5.6 19.4 2.6 18.5 3.1 15.4 1 13 3.1 10.6 2.6 7.5 5.6 6.6 6.5 3.6 9.6 4.1 12 2Z" />
+      <polyline
+        points="8.5 12.5 11 15 15.5 9.5"
+        fill="none"
+        stroke="var(--bg-card, #182339)"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+export function PlayIcon(props) {
+  return (
+    <svg {...base} fill="currentColor" stroke="none" {...props}>
+      <polygon points="9 6 19 12 9 18" />
+    </svg>
+  );
+}

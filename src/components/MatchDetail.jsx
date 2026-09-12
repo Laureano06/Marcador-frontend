@@ -9,7 +9,7 @@ import MatchEvents from "./MatchEvents";
 import MatchH2H from "./MatchH2H";
 import MatchShotmap from "./MatchShotmap";
 import MatchPlayerStats from "./MatchPlayerStats";
-import { ChevronLeftIcon } from "./icons";
+import { ChevronLeftIcon, CheckBadgeIcon, PlayIcon } from "./icons";
 import { useDocumentMeta } from "../useDocumentMeta";
 import { useStructuredData } from "../useStructuredData";
 import { AnimatedScore, EASE_OUT } from "../motion";
@@ -181,6 +181,49 @@ function Odds({ odds, home, away }) {
       <p className="prediction-disclaimer">
         Cuota consensuada entre casas de apuestas, informativa — no es una recomendación de apuesta.
       </p>
+    </div>
+  );
+}
+
+function SocialItem({ item }) {
+  const timeLabel = item.publishedAt
+    ? new Date(item.publishedAt).toLocaleString("es-AR", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : null;
+
+  return (
+    <a href={item.url} target="_blank" rel="noopener noreferrer" className="social-item">
+      {item.thumbnail && (
+        <div className="social-item-thumb">
+          <img src={item.thumbnail} alt="" loading="lazy" />
+          {item.type === "video" && <PlayIcon className="social-item-play" />}
+        </div>
+      )}
+      <div className="social-item-body">
+        <div className="social-item-account">
+          {item.accountName && <span className="social-item-account-name">{item.accountName}</span>}
+          {item.verified && <CheckBadgeIcon className="social-item-verified" />}
+          {timeLabel && <span className="social-item-time">{timeLabel}</span>}
+        </div>
+        {item.text && <p className="social-item-text">{item.text}</p>}
+      </div>
+    </a>
+  );
+}
+
+function Social({ social }) {
+  return (
+    <div className="team-section">
+      <h2 className="team-section-title">Social</h2>
+      <div className="social-list">
+        {social.map((item) => (
+          <SocialItem key={item.id} item={item} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -359,6 +402,7 @@ const TABS = [
   { key: "h2h", label: "H2H" },
   { key: "pronostico", label: "Pronóstico" },
   { key: "cuotas", label: "Cuotas" },
+  { key: "social", label: "Social" },
 ];
 
 export default function MatchDetail({ matchId, onBack }) {
@@ -464,6 +508,7 @@ export default function MatchDetail({ matchId, onBack }) {
         if (t.key === "h2h") return !!detail.h2h || !!detail.form?.home?.length || !!detail.form?.away?.length;
         if (t.key === "pronostico") return !!detail.predictions;
         if (t.key === "cuotas") return !!detail.odds;
+        if (t.key === "social") return !!detail.social?.length;
         return false;
       })
     : [];
@@ -637,6 +682,8 @@ export default function MatchDetail({ matchId, onBack }) {
           {currentTab === "cuotas" && detail.odds && (
             <Odds odds={detail.odds} home={detail.home} away={detail.away} />
           )}
+
+          {currentTab === "social" && detail.social?.length > 0 && <Social social={detail.social} />}
         </>
       )}
     </div>
