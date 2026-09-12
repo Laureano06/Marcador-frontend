@@ -8,6 +8,7 @@ import LineupPitch from "./LineupPitch";
 import MatchEvents from "./MatchEvents";
 import MatchH2H from "./MatchH2H";
 import MatchShotmap from "./MatchShotmap";
+import MatchMomentum from "./MatchMomentum";
 import MatchPlayerStats from "./MatchPlayerStats";
 import { ChevronLeftIcon, CheckBadgeIcon, PlayIcon } from "./icons";
 import { useDocumentMeta } from "../useDocumentMeta";
@@ -504,7 +505,7 @@ export default function MatchDetail({ matchId, onBack }) {
         if (t.key === "alineaciones") return !!detail.lineups;
         if (t.key === "estadisticas") return !!detail.statistics?.length || !!detail.playerStats?.length;
         if (t.key === "eventos") return !!detail.events?.length;
-        if (t.key === "xg") return !!detail.xg || !!detail.shotmap?.length;
+        if (t.key === "xg") return !!detail.xg || !!detail.shotmap?.length || !!detail.momentum?.length;
         if (t.key === "h2h") return !!detail.h2h || !!detail.form?.home?.length || !!detail.form?.away?.length;
         if (t.key === "pronostico") return !!detail.predictions;
         if (t.key === "cuotas") return !!detail.odds;
@@ -657,13 +658,20 @@ export default function MatchDetail({ matchId, onBack }) {
           {currentTab === "eventos" && <MatchEvents events={detail.events} />}
 
           {currentTab === "xg" && (
-            <MatchShotmap
-              xg={detail.xg}
-              shotmap={detail.shotmap}
-              homeName={detail.home?.name}
-              awayName={detail.away?.name}
-              playersById={playersById}
-            />
+            <>
+              <MatchMomentum
+                momentum={detail.momentum}
+                homeName={detail.home?.name}
+                awayName={detail.away?.name}
+              />
+              <MatchShotmap
+                xg={detail.xg}
+                shotmap={detail.shotmap}
+                homeName={detail.home?.name}
+                awayName={detail.away?.name}
+                playersById={playersById}
+              />
+            </>
           )}
 
           {currentTab === "h2h" && (

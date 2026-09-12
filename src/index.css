@@ -3842,3 +3842,77 @@ footer {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
+
+/* --- Momentum (MatchDetail) --- */
+.momentum-chart {
+  display: flex;
+  align-items: stretch;
+  height: 110px;
+  gap: 1px;
+  margin-top: 12px;
+  padding: 0 2px;
+}
+
+.momentum-col {
+  flex: 1;
+  min-width: 1px;
+  display: flex;
+  flex-direction: column;
+}
+
+.momentum-col-top {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  border-bottom: 1px solid var(--line);
+}
+
+.momentum-col-bottom {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+}
+
+.momentum-bar-home {
+  width: 100%;
+  min-height: 1px;
+  background: var(--accent);
+  border-radius: 1px 1px 0 0;
+}
+
+.momentum-bar-away {
+  width: 100%;
+  min-height: 1px;
+  background: var(--gray-mid);
+  border-radius: 0 0 1px 1px;
+}
+
+.momentum-legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.momentum-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.momentum-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.momentum-legend-dot-home {
+  background: var(--accent);
+}
+
+.momentum-legend-dot-away {
+  background: var(--gray-mid);
+}
