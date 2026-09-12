@@ -119,6 +119,71 @@ function Predictions({ predictions, home, away }) {
   );
 }
 
+function OddsMarket({ label, options }) {
+  return (
+    <div className="odds-market">
+      <div className="odds-market-label">{label}</div>
+      <div className="odds-options">
+        {options.map((o) => (
+          <div key={o.label} className="odds-option">
+            <span className="odds-option-label">{o.label}</span>
+            <span className="odds-option-value">{o.value.toFixed(2)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Odds({ odds, home, away }) {
+  return (
+    <div className="team-section">
+      <h2 className="team-section-title">Cuotas</h2>
+      <div className="odds-grid">
+        <OddsMarket
+          label="Resultado"
+          options={[
+            { label: home?.name || "Local", value: odds.homeWin },
+            { label: "Empate", value: odds.draw },
+            { label: away?.name || "Visitante", value: odds.awayWin },
+          ]}
+        />
+        <OddsMarket
+          label="Ambos anotan"
+          options={[
+            { label: "Sí", value: odds.bttsYes },
+            { label: "No", value: odds.bttsNo },
+          ]}
+        />
+        <OddsMarket
+          label="Más/menos de 1.5 goles"
+          options={[
+            { label: "Más", value: odds.over15 },
+            { label: "Menos", value: odds.under15 },
+          ]}
+        />
+        <OddsMarket
+          label="Más/menos de 2.5 goles"
+          options={[
+            { label: "Más", value: odds.over25 },
+            { label: "Menos", value: odds.under25 },
+          ]}
+        />
+        <OddsMarket
+          label="Más/menos de 3.5 goles"
+          options={[
+            { label: "Más", value: odds.over35 },
+            { label: "Menos", value: odds.under35 },
+          ]}
+        />
+      </div>
+      <p className="prediction-disclaimer">
+        Cuota consensuada entre casas de apuestas, informativa — no es una recomendación de apuesta.
+      </p>
+    </div>
+  );
+}
+
 const WEATHER_ICON = { clear: "☀️", cloudy: "☁️", rain: "🌧️", snow: "❄️", extreme: "⛈️" };
 
 function MatchMeta({ detail }) {
@@ -193,6 +258,7 @@ const TABS = [
   { key: "xg", label: "xG" },
   { key: "h2h", label: "H2H" },
   { key: "pronostico", label: "Pronóstico" },
+  { key: "cuotas", label: "Cuotas" },
 ];
 
 export default function MatchDetail({ matchId, onBack }) {
@@ -297,6 +363,7 @@ export default function MatchDetail({ matchId, onBack }) {
         if (t.key === "xg") return !!detail.xg || !!detail.shotmap?.length;
         if (t.key === "h2h") return !!detail.h2h || !!detail.form?.home?.length || !!detail.form?.away?.length;
         if (t.key === "pronostico") return !!detail.predictions;
+        if (t.key === "cuotas") return !!detail.odds;
         return false;
       })
     : [];
@@ -463,6 +530,10 @@ export default function MatchDetail({ matchId, onBack }) {
 
           {currentTab === "pronostico" && detail.predictions && (
             <Predictions predictions={detail.predictions} home={detail.home} away={detail.away} />
+          )}
+
+          {currentTab === "cuotas" && detail.odds && (
+            <Odds odds={detail.odds} home={detail.home} away={detail.away} />
           )}
         </>
       )}
